@@ -563,6 +563,9 @@ class PluginGuiTest(unittest.TestCase):
         self.set_row(dlg, 0, BaseLevelOptions.MANUAL_BASE_LEVEL, 100.0)
         self.set_row(dlg, 1, BaseLevelOptions.MANUAL_BASE_LEVEL, 100.5)
         self.run_and_wait()
+        # the volume fields added by the run do not reset the chosen name field
+        QCoreApplication.processEvents()
+        self.assertEqual(dlg.fieldComboLabelName.currentField(), "Matériau")
 
         layer = QgsVectorLayer(self.poly.source(), "check", "ogr")
         expression = QgsExpression(self.poly.labeling().settings().fieldName)

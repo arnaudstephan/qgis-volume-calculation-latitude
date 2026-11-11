@@ -37,7 +37,7 @@ import unicodedata
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import QItemSelectionModel, QLocale, QSettings, Qt, QUrl, pyqtSignal
+from qgis.PyQt.QtCore import QItemSelectionModel, QLocale, QSettings, Qt, QTimer, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QBrush, QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QComboBox, QDoubleSpinBox,
                                  QFileDialog, QHeaderView, QInputDialog, QLabel, QMenu, QMessageBox,
@@ -235,6 +235,9 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         self.fieldComboLabelName.setAllowEmptyFieldName(True)
         self.mFieldComboPolygon.layerChanged.connect(self.fieldComboLabelName.setLayer)
         self.fieldComboLabelName.setLayer(self.mFieldComboPolygon.currentLayer())
+        # chosen label field, restored when new fields reset the combo (volume fields added by a run)
+        self._labelFieldName = ""
+        self._labelLayer = None
         # No Python slot of the dialog is connected to the layer / band combos: they also fire
         # when layers leave the project, after the dialog is closed, and a closure of a closed
         # dialog crashed QGIS there. The plugin connects them (onInputLayerChanged), as before.
@@ -301,8 +304,7 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         self.checkBox_add_field.toggled.connect(self._ifShown(self._updateOutputOptionsEnabled))
         self.checkBox_labels.toggled.connect(self._ifShown(self._updateOutputOptionsEnabled))
         # only a choice made by the user is remembered (not the automatic one on a layer change)
-        self.fieldComboLabelName.activated.connect(
-            lambda _i: _store_setting("label_name_field", self.fieldComboLabelName.currentField()))
+        self.fieldComboLabelName.activated.connect(self._onLabelFieldActivated)
         self.mFieldComboCountingMethod.currentIndexChanged.connect(self._ifShown(self._updateOutputOptionsEnabled))
 
         # ---- polygon table ----------------------------------------------------
@@ -1026,18 +1028,48 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         """After a polygon layer change: the field chosen last time if the layer has it,
         otherwise a field that looks like a material name, otherwise none."""
         layer = self.fieldComboLabelName.layer()
+        self._watchLabelLayer(layer)
         if layer is None:
             return
         names = [f.name() for f in layer.fields()]
         remembered = _setting("label_name_field", "", str)
         if remembered and remembered in names:
-            self.fieldComboLabelName.setField(remembered)
+            chosen = remembered
+        else:
+            chosen = next((name for name in names if _looks_like_material(name)), "")
+        self._labelFieldName = chosen
+        self.fieldComboLabelName.setField(chosen)
+
+    def _onLabelFieldActivated(self, _index):
+        self._labelFieldName = self.fieldComboLabelName.currentField()
+        _store_setting("label_name_field", self._labelFieldName)
+
+    def _watchLabelLayer(self, layer):
+        """Follow the field changes of the polygon layer: adding fields resets the label field combo."""
+        if layer is self._labelLayer:
             return
-        for name in names:
-            if _looks_like_material(name):
+        if self._labelLayer is not None:
+            try:
+                self._labelLayer.updatedFields.disconnect(self._onLabelLayerFieldsUpdated)
+            except (TypeError, RuntimeError):   # not connected, or layer already deleted
+                pass
+        self._labelLayer = layer
+        if layer is not None:
+            layer.updatedFields.connect(self._onLabelLayerFieldsUpdated)
+
+    def _onLabelLayerFieldsUpdated(self):
+        # the combo's field model is rebuilt by the same signal: restore once it is done
+        QTimer.singleShot(0, self._restoreLabelField)
+
+    def _restoreLabelField(self):
+        try:
+            layer = self.fieldComboLabelName.layer()
+            name = self._labelFieldName
+            if name and layer is not None and layer.fields().lookupField(name) != -1 \
+                    and self.fieldComboLabelName.currentField() != name:
                 self.fieldComboLabelName.setField(name)
-                return
-        self.fieldComboLabelName.setField("")
+        except RuntimeError:   # dialog already deleted
+            pass
 
     def clear_log(self):
         self.logOutput.clear()
