@@ -32,24 +32,24 @@
             <translation>Exagération verticale : rend les pentes et les bosses de la base plus visibles</translation>
         </message>
         <message>
-            <source>Level:</source>
-            <translation>Altitude :</translation>
+            <source>Level</source>
+            <translation>Altitude</translation>
         </message>
         <message>
             <source>Height of the horizontal base</source>
             <translation>Altitude de la base horizontale</translation>
         </message>
         <message>
-            <source>Ring:</source>
-            <translation>Anneau :</translation>
+            <source>Ring</source>
+            <translation>Anneau</translation>
         </message>
         <message>
             <source>Width of the band of ground around the polygon on which the spline is fitted (dotted line)</source>
             <translation>Largeur de la bande de terrain autour du polygone sur laquelle la spline est ajustée (pointillés)</translation>
         </message>
         <message>
-            <source>Stiffness:</source>
-            <translation>Raideur :</translation>
+            <source>Stiffness</source>
+            <translation>Raideur</translation>
         </message>
         <message>
             <source>0: supple, follows the hollows and bumps of the ring — 10: stiff, nearly an inclined plane</source>
@@ -64,20 +64,40 @@
             <translation>Polygone suivant du tableau (Alt+Droite)</translation>
         </message>
         <message>
-            <source>Base method:</source>
-            <translation>Méthode de base :</translation>
+            <source>Base</source>
+            <translation>Base</translation>
         </message>
         <message>
-            <source>Stock:</source>
-            <translation>Stock :</translation>
+            <source>Base method of this polygon: chosen here, it is kept for the polygon</source>
+            <translation>Méthode de base de ce polygone : choisie ici, elle est conservée pour le polygone</translation>
         </message>
         <message>
-            <source>Vertical exaggeration:</source>
-            <translation>Exagération verticale :</translation>
+            <source>Stock</source>
+            <translation>Stock</translation>
         </message>
         <message>
-            <source>&lt;span style='color:#2166d9;'&gt;■&lt;/span&gt; base under the ground (stock volume) &amp;nbsp; &lt;span style='color:#d92121;'&gt;■&lt;/span&gt; base above the ground (counted below the base) &amp;nbsp; &lt;span style='color:#b8b8b3;'&gt;■&lt;/span&gt; ground around the polygon &amp;nbsp; &lt;b&gt;—&lt;/b&gt; polygon outline. &amp;nbsp; Dashed lines: the two cross-sections on the right. &amp;nbsp; &lt;i&gt;3D view: drag to rotate, right-drag to zoom.&lt;/i&gt;</source>
-            <translation>&lt;span style='color:#2166d9;'&gt;■&lt;/span&gt; base sous le terrain (volume du stock) &amp;nbsp; &lt;span style='color:#d92121;'&gt;■&lt;/span&gt; base au-dessus du terrain (compté au-dessous de la base) &amp;nbsp; &lt;span style='color:#b8b8b3;'&gt;■&lt;/span&gt; terrain autour du polygone &amp;nbsp; &lt;b&gt;—&lt;/b&gt; contour du polygone. &amp;nbsp; Tirets : les deux coupes de droite. &amp;nbsp; &lt;i&gt;Vue 3D : glisser pour tourner, glisser avec le bouton droit pour zoomer.&lt;/i&gt;</translation>
+            <source>Drag to rotate, right-drag to zoom</source>
+            <translation>Glisser pour tourner, glisser avec le bouton droit pour zoomer</translation>
+        </message>
+        <message>
+            <source>base below the ground</source>
+            <translation>base sous le terrain</translation>
+        </message>
+        <message>
+            <source>base above the ground</source>
+            <translation>base au-dessus du terrain</translation>
+        </message>
+        <message>
+            <source>ground</source>
+            <translation>terrain</translation>
+        </message>
+        <message>
+            <source>outline</source>
+            <translation>contour</translation>
+        </message>
+        <message>
+            <source>Blue: stock volume (above the base). Red: counted below the base. Dashed lines: the two cross-sections.</source>
+            <translation>Bleu : volume du stock (au-dessus de la base). Rouge : compté au-dessous de la base. Tirets : les deux coupes.</translation>
         </message>
         <message>
             <source>ID {}</source>
@@ -88,16 +108,24 @@
             <translation>Erreur inattendue : {}</translation>
         </message>
         <message>
-            <source>&lt;span style='color:#d0312d;'&gt;&lt;b&gt;Not possible for this polygon:&lt;/b&gt; {}&lt;/span&gt;</source>
-            <translation>&lt;span style='color:#d0312d;'&gt;&lt;b&gt;Impossible pour ce polygone :&lt;/b&gt; {}&lt;/span&gt;</translation>
+            <source>Not possible for this polygon:</source>
+            <translation>Impossible pour ce polygone :</translation>
         </message>
         <message>
-            <source>&lt;b&gt;Volume above the base: {} &amp;nbsp;·&amp;nbsp; below the base: {}&lt;/b&gt; &amp;nbsp; (base: {})</source>
-            <translation>&lt;b&gt;Volume au-dessus de la base : {} &amp;nbsp;·&amp;nbsp; au-dessous de la base : {}&lt;/b&gt; &amp;nbsp; (base : {})</translation>
+            <source>above the base</source>
+            <translation>au-dessus de la base</translation>
         </message>
         <message>
-            <source>&lt;span style='color:#d0312d;'&gt;Only {:.1f} % of the polygon has DEM data.&lt;/span&gt;</source>
-            <translation>&lt;span style='color:#d0312d;'&gt;Seulement {:.1f} % du polygone est couvert par le MNT.&lt;/span&gt;</translation>
+            <source>below the base</source>
+            <translation>au-dessous de la base</translation>
+        </message>
+        <message>
+            <source>base: {}</source>
+            <translation>base : {}</translation>
+        </message>
+        <message>
+            <source>Only {:.1f} % of the polygon has DEM data.</source>
+            <translation>Seulement {:.1f} % du polygone a des données MNT.</translation>
         </message>
         <message>
             <source>west → east</source>
@@ -106,18 +134,6 @@
         <message>
             <source>south → north</source>
             <translation>sud → nord</translation>
-        </message>
-        <message>
-            <source>X from centre ({})</source>
-            <translation>X depuis le centre ({})</translation>
-        </message>
-        <message>
-            <source>Y from centre ({})</source>
-            <translation>Y depuis le centre ({})</translation>
-        </message>
-        <message>
-            <source>Height ({})</source>
-            <translation>Altitude ({})</translation>
         </message>
         <message>
             <source>DEM (ground and stock)</source>
@@ -132,8 +148,8 @@
             <translation>Coupe {n}–{n}' ({d})</translation>
         </message>
         <message>
-            <source>distance from centre ({}) — vertical scale × {}</source>
-            <translation>distance au centre ({}) — échelle verticale × {}</translation>
+            <source>distance from centre ({})</source>
+            <translation>distance au centre ({})</translation>
         </message>
         <message>
             <source>height ({})</source>
@@ -160,16 +176,16 @@
             <translation>Aucune entité n'est sélectionnée sur la carte dans la couche « {} ».</translation>
         </message>
         <message>
-            <source>The 3D view needs the Python library matplotlib, not found in this QGIS installation ({}).</source>
-            <translation>La vue 3D nécessite la bibliothèque Python matplotlib, introuvable dans cette installation de QGIS ({}).</translation>
+            <source>The 3D view needs the Python library matplotlib ({}).</source>
+            <translation>La vue 3D nécessite la bibliothèque Python matplotlib ({}).</translation>
         </message>
         <message>
             <source>The 3D view could not be prepared: {}</source>
             <translation>Impossible de préparer la vue 3D : {}</translation>
         </message>
         <message>
-            <source>The 3D view needs a DEM raster as height layer. With a point cloud, check 'Keep the DEM of the whole point cloud', compute once, then select that DEM as height layer.</source>
-            <translation>La vue 3D nécessite un raster MNT comme couche d'altitude. Avec un nuage de points, cochez « Conserver le MNT de tout le nuage de points », lancez un calcul, puis sélectionnez ce MNT comme couche d'altitude.</translation>
+            <source>The 3D view needs a DEM raster: with a point cloud, check 'Keep the DEM of the whole cloud', compute, then select that DEM.</source>
+            <translation>La vue 3D nécessite un MNT raster : avec un nuage de points, cochez « Conserver le MNT du nuage entier », calculez, puis sélectionnez ce MNT.</translation>
         </message>
         <message>
             <source>Select a polygon layer and a valid DEM height layer.</source>
@@ -184,12 +200,12 @@
             <translation>L'unité de carte du SCR du MNT ({}) n'est pas prise en charge.</translation>
         </message>
         <message>
-            <source>No base DEM layer selected in 'Settings of the base methods'.</source>
-            <translation>Aucune couche MNT de base sélectionnée dans « Réglages des méthodes de base ».</translation>
+            <source>No base DEM layer selected.</source>
+            <translation>Aucune couche MNT de base sélectionnée.</translation>
         </message>
         <message>
-            <source>The base DEM layer '{}' is not a DEM with a pixel grid (web map / tiles?): select an elevation raster.</source>
-            <translation>La couche MNT de base « {} » n'est pas un MNT avec une grille de pixels (fond de carte web / tuiles ?) : sélectionnez un raster d'altitudes.</translation>
+            <source>'{}' is not a DEM with a pixel grid (web tiles?): select an elevation raster.</source>
+            <translation>« {} » n'est pas un MNT avec une grille de pixels (tuiles web ?) : sélectionnez un raster d'altitude.</translation>
         </message>
         <message>
             <source>Select a band of the base DEM layer.</source>
@@ -208,24 +224,24 @@
             <translation>Le polygone {} n'a pas de géométrie.</translation>
         </message>
         <message>
-            <source>3D view of the base – polygon {} – {}</source>
-            <translation>Vue 3D de la base – polygone {} – {}</translation>
+            <source>3D view – ID {} – {}</source>
+            <translation>Vue 3D – ID {} – {}</translation>
         </message>
         <message>
-            <source>3D view of the base – polygon {}</source>
-            <translation>Vue 3D de la base – polygone {}</translation>
+            <source>3D view – ID {}</source>
+            <translation>Vue 3D – ID {}</translation>
         </message>
         <message>
             <source>Unexpected error while preparing the point cloud: {}</source>
             <translation>Erreur inattendue lors de la préparation du nuage de points : {}</translation>
         </message>
         <message>
-            <source>Step 1/2: DEM already interpolated from '{}' with these settings, reused: {}</source>
-            <translation>Étape 1/2 : MNT déjà interpolé à partir de « {} » avec ces réglages, réutilisé : {}</translation>
+            <source>DEM of point cloud '{}' reused: {}</source>
+            <translation>MNT du nuage de points « {} » réutilisé : {}</translation>
         </message>
         <message>
-            <source>Step 1/2: interpolating a DEM from point cloud '{}' ({})...</source>
-            <translation>Étape 1/2 : interpolation d'un MNT à partir du nuage de points « {} » ({})...</translation>
+            <source>DEM from point cloud '{}' ({})…</source>
+            <translation>MNT du nuage de points « {} » ({})…</translation>
         </message>
         <message>
             <source>The point cloud layer is not valid.</source>
@@ -272,20 +288,20 @@
             <translation>TIN, résolution {:g} {}, tous les points, emprise des polygones uniquement</translation>
         </message>
         <message>
-            <source>Operation cancelled by user. No output was written.</source>
-            <translation>Opération annulée par l'utilisateur. Aucun résultat n'a été écrit.</translation>
+            <source>Cancelled: nothing written.</source>
+            <translation>Annulé : rien n'a été écrit.</translation>
         </message>
         <message>
-            <source>If the file contains only ground points that are not classified, uncheck 'Use only the points classified as ground'.</source>
-            <translation>Si le fichier ne contient que des points du sol non classés, décochez « Utiliser uniquement les points classés sol ».</translation>
+            <source>Unclassified ground points? Uncheck 'Ground class only'.</source>
+            <translation>Points sol non classés ? Décochez « Classe sol uniquement ».</translation>
         </message>
         <message>
             <source>The point cloud could not be interpolated into a DEM.</source>
             <translation>Le nuage de points n'a pas pu être interpolé en MNT.</translation>
         </message>
         <message>
-            <source>Step 1/2 done: DEM written to {}</source>
-            <translation>Étape 1/2 terminée : MNT écrit dans {}</translation>
+            <source>DEM written: {}</source>
+            <translation>MNT écrit : {}</translation>
         </message>
         <message>
             <source>Unexpected error after the point cloud interpolation:
@@ -326,8 +342,8 @@
             <translation>La couche d'altitude MNT n'a pas de système de coordonnées de référence.</translation>
         </message>
         <message>
-            <source>The DEM height layer uses a geographic CRS ({}), in degrees. Volumes need a projected CRS in metres or feet: reproject the DEM first (Raster &gt; Projections &gt; Warp).</source>
-            <translation>La couche d'altitude MNT est dans un SCR géographique ({}), en degrés. Les volumes nécessitent un SCR projeté en mètres ou en pieds : reprojetez d'abord le MNT (Raster &gt; Projections &gt; Projection (warp)).</translation>
+            <source>The DEM uses a geographic CRS ({}): reproject it to a projected CRS (metres or feet).</source>
+            <translation>Le MNT est dans un SCR géographique ({}) : reprojetez-le dans un SCR projeté (mètres ou pieds).</translation>
         </message>
         <message>
             <source>The map unit of the DEM CRS ({}) is not a supported distance unit.</source>
@@ -346,20 +362,16 @@
             <translation>{} sont des noms de champs réservés.</translation>
         </message>
         <message>
-            <source>The attributes of layer '{}' cannot be changed (read-only format?). Uncheck 'Add/update volume as field' or use another format.</source>
-            <translation>Les attributs de la couche « {} » ne peuvent pas être modifiés (format en lecture seule ?). Décochez « Ajouter/mettre à jour le volume dans un champ » ou utilisez un autre format.</translation>
+            <source>Layer '{}' is read-only: uncheck 'Write the volumes to the layer'.</source>
+            <translation>La couche « {} » est en lecture seule : décochez « Écrire les volumes dans la couche ».</translation>
         </message>
         <message>
             <source>Fields cannot be added to layer '{}'.</source>
             <translation>Impossible d'ajouter des champs à la couche « {} ».</translation>
         </message>
         <message>
-            <source>Some checked rows use the method '{}': select a valid base DEM layer in 'Settings of the base methods'.</source>
-            <translation>Des lignes cochées utilisent la méthode « {} » : sélectionnez une couche MNT de base valide dans « Réglages des méthodes de base ».</translation>
-        </message>
-        <message>
-            <source>The base DEM layer '{}' is not a DEM with a pixel grid (web map / tiles?): select an elevation raster in 'Settings of the base methods'.</source>
-            <translation>La couche MNT de base « {} » n'est pas un MNT avec une grille de pixels (fond de carte web / tuiles ?) : sélectionnez un raster d'altitudes dans « Réglages des méthodes de base ».</translation>
+            <source>Select a valid base DEM layer (method “{}”).</source>
+            <translation>Sélectionnez une couche MNT de base valide (méthode « {} »).</translation>
         </message>
         <message>
             <source>Select a band of the DEM base layer.</source>
@@ -374,8 +386,8 @@
             <translation>Le MNT de base est dans un SCR géographique ({}) : reprojetez-le d'abord.</translation>
         </message>
         <message>
-            <source>The base DEM ({}) is in another CRS than the height DEM ({}): each cell centre is transformed to read the base DEM.</source>
-            <translation>Le MNT de base ({}) est dans un autre SCR que le MNT d'altitude ({}) : le centre de chaque maille est transformé pour lire le MNT de base.</translation>
+            <source>Base DEM ({}) reprojected on the fly to the DEM CRS ({}).</source>
+            <translation>MNT de base ({}) reprojeté à la volée dans le SCR du MNT ({}).</translation>
         </message>
         <message>
             <source>The polygon layer has no CRS: assumed identical to the DEM CRS.</source>
@@ -412,10 +424,10 @@
             <translation>Calcul volumineux</translation>
         </message>
         <message>
-            <source>About {:.0f} million sampling cells will be evaluated, this can take a while. Increase the sampling step to go faster.
+            <source>About {:.0f} million cells to sample: this can take a while (a larger step is faster).
 
 Continue?</source>
-            <translation>Environ {:.0f} millions de mailles d'échantillonnage vont être évaluées, cela peut prendre du temps. Augmentez le pas d'échantillonnage pour aller plus vite.
+            <translation>Environ {:.0f} millions de cellules à échantillonner : cela peut prendre du temps (un pas plus grand est plus rapide).
 
 Continuer ?</translation>
         </message>
@@ -438,16 +450,16 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Les volumes n'ont pas pu être écrits dans la couche « {} » : {}</translation>
         </message>
         <message>
-            <source>{}/{} polygons computed</source>
-            <translation>{}/{} polygones calculés</translation>
+            <source>{}/{} computed</source>
+            <translation>{}/{} calculés</translation>
         </message>
         <message>
-            <source>1 polygon could not be computed, see the log for the reason.</source>
-            <translation>1 polygone n'a pas pu être calculé, voir le journal pour la raison.</translation>
+            <source>1 polygon not computed: see the log.</source>
+            <translation>1 polygone non calculé : voir le journal.</translation>
         </message>
         <message>
-            <source>{} polygons could not be computed, see the log for the reasons.</source>
-            <translation>{} polygones n'ont pas pu être calculés, voir le journal pour les raisons.</translation>
+            <source>{} polygons not computed: see the log.</source>
+            <translation>{} polygones non calculés : voir le journal.</translation>
         </message>
         <message>
             <source>not computed</source>
@@ -502,104 +514,48 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Enregistré dans la couche.</translation>
         </message>
         <message>
-            <source>========== Volume Calculation ==========</source>
-            <translation>========== Calcul de volumes ==========</translation>
+            <source>step larger than the DEM pixel, part of the DEM is not used.</source>
+            <translation>pas plus grand que le pixel du MNT, une partie du MNT n'est pas utilisée.</translation>
         </message>
         <message>
-            <source>Time: {}</source>
-            <translation>Date : {}</translation>
+            <source>ID {}: not computed — {}</source>
+            <translation>ID {} : non calculé — {}</translation>
         </message>
         <message>
-            <source>Polygon Layer: {}</source>
-            <translation>Couche de polygones : {}</translation>
+            <source>ID {}: only {:.1f} % of the polygon has DEM data, volume underestimated.</source>
+            <translation>ID {} : seulement {:.1f} % du polygone a des données MNT, volume sous-estimé.</translation>
         </message>
         <message>
-            <source>Height Layer: {}</source>
-            <translation>Couche d'altitude : {}</translation>
-        </message>
-        <message>
-            <source>Heights from {}</source>
-            <translation>Altitudes issues du {}</translation>
-        </message>
-        <message>
-            <source>Base DEM Layer: {}</source>
-            <translation>Couche MNT de base : {}</translation>
-        </message>
-        <message>
-            <source>Counting Option: {}</source>
-            <translation>Option de comptage : {}</translation>
-        </message>
-        <message>
-            <source>Sampling step: {} x {} {} (DEM pixel: {:.4g} x {:.4g} {})</source>
-            <translation>Pas d'échantillonnage : {} x {} {} (pixel du MNT : {:.4g} x {:.4g} {})</translation>
-        </message>
-        <message>
-            <source>Note: step larger than the DEM pixel, part of the DEM is not used.</source>
-            <translation>Remarque : pas plus grand que le pixel du MNT, une partie du MNT n'est pas utilisée.</translation>
-        </message>
-        <message>
-            <source>Heights are assumed to be in the CRS unit ({}).</source>
-            <translation>Les altitudes sont supposées dans l'unité du SCR ({}).</translation>
-        </message>
-        <message>
-            <source>Note: {}</source>
-            <translation>Remarque : {}</translation>
+            <source>ID {}: {}</source>
+            <translation>ID {} : {}</translation>
         </message>
         <message>
             <source>Warning: {}</source>
             <translation>Attention : {}</translation>
         </message>
         <message>
-            <source>Height-above-base raster (nDSM): {}</source>
-            <translation>Raster des hauteurs au-dessus de la base (MNS normalisé) : {}</translation>
+            <source>above {}</source>
+            <translation>au-dessus {}</translation>
         </message>
         <message>
-            <source>---------- Results ----------</source>
-            <translation>---------- Résultats ----------</translation>
+            <source>below {}</source>
+            <translation>au-dessous {}</translation>
         </message>
         <message>
-            <source>Polygon Id: {} ({})</source>
-            <translation>Polygone n° {} ({})</translation>
+            <source>Total: {}</source>
+            <translation>Total : {}</translation>
         </message>
         <message>
-            <source>Polygon Id: {}</source>
-            <translation>Polygone n° {}</translation>
+            <source>Overwrite the DEM</source>
+            <translation>Écraser le MNT</translation>
         </message>
         <message>
-            <source>ERROR: {}</source>
-            <translation>ERREUR : {}</translation>
+            <source>Overwrite the nDSM</source>
+            <translation>Écraser le MNS normalisé</translation>
         </message>
         <message>
-            <source>Above Volume: {}</source>
-            <translation>Volume au-dessus : {}</translation>
-        </message>
-        <message>
-            <source>Below Volume: {}</source>
-            <translation>Volume au-dessous : {}</translation>
-        </message>
-        <message>
-            <source>Warning: only {:.1f} % of the polygon has DEM data (nodata or outside the DEM), the volume is underestimated.</source>
-            <translation>Attention : seulement {:.1f} % du polygone a des données MNT (nodata ou hors du MNT), le volume est sous-estimé.</translation>
-        </message>
-        <message>
-            <source>---------- Total ----------</source>
-            <translation>---------- Total ----------</translation>
-        </message>
-        <message>
-            <source>nDOM output exists</source>
-            <translation>Le MNS normalisé existe</translation>
-        </message>
-        <message>
-            <source>The nDOM output "{}" is loaded in QGIS. Press OK to close the layer and overwrite it, or Cancel to return to the plugin.</source>
-            <translation>Le MNS normalisé « {} » est chargé dans QGIS. Cliquez sur OK pour fermer la couche et l'écraser, ou sur Annuler pour revenir à l'extension.</translation>
-        </message>
-        <message>
-            <source>interpolated DEM exists</source>
-            <translation>Le MNT interpolé existe</translation>
-        </message>
-        <message>
-            <source>The interpolated DEM "{}" is loaded in QGIS. Press OK to close the layer and overwrite it, or Cancel to return to the plugin.</source>
-            <translation>Le MNT interpolé « {} » est chargé dans QGIS. Cliquez sur OK pour fermer la couche et l'écraser, ou sur Annuler pour revenir à l'extension.</translation>
+            <source>"{}" is loaded in QGIS: close the layer and overwrite the file?</source>
+            <translation>« {} » est chargé dans QGIS : fermer la couche et écraser le fichier ?</translation>
         </message>
         <message>
             <source>Cannot overwrite '{}' ({}). Close any program using it.</source>
@@ -622,12 +578,12 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Méthode enregistrée dans la couche (dernier calcul).</translation>
         </message>
         <message>
-            <source>Default method “{}”: no method is stored in the layer for this polygon. The default is the last method given with “Set base method”.</source>
-            <translation>Méthode par défaut « {} » : aucune méthode n'est enregistrée dans la couche pour ce polygone. La méthode par défaut est la dernière donnée avec « Définir la méthode de base ».</translation>
+            <source>Default method “{}” (none stored in the layer).</source>
+            <translation>Méthode par défaut « {} » (aucune enregistrée dans la couche).</translation>
         </message>
         <message>
-            <source>Changed in this dialog: stored in the layer at the next calculation.</source>
-            <translation>Modifiée dans cette fenêtre : enregistrée dans la couche au prochain calcul.</translation>
+            <source>Changed: stored in the layer at the next calculation.</source>
+            <translation>Modifiée : enregistrée dans la couche au prochain calcul.</translation>
         </message>
         <message>
             <source>n != 1</source>
@@ -654,10 +610,6 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Méthode de base</translation>
         </message>
         <message>
-            <source>Compute</source>
-            <translation>Calculer</translation>
-        </message>
-        <message>
             <source>ID</source>
             <translation>ID</translation>
         </message>
@@ -666,8 +618,8 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Nom</translation>
         </message>
         <message>
-            <source>Manual level ({})</source>
-            <translation>Altitude imposée ({})</translation>
+            <source>Level ({})</source>
+            <translation>Altitude ({})</translation>
         </message>
         <message>
             <source>Above ({})</source>
@@ -682,44 +634,36 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Les lignes cochées sont calculées</translation>
         </message>
         <message>
-            <source>Required: select the base DEM layer.</source>
-            <translation>Obligatoire : choisissez la « Couche MNT de base ».</translation>
+            <source>Select the base DEM layer.</source>
+            <translation>Sélectionnez la couche MNT de base.</translation>
         </message>
         <message>
-            <source>not used by any checked row</source>
-            <translation>utilisée par aucune ligne cochée</translation>
+            <source>{} checked row</source>
+            <translation>{} ligne cochée</translation>
         </message>
         <message>
-            <source>used by {} checked row</source>
-            <translation>utilisée par {} ligne cochée</translation>
-        </message>
-        <message>
-            <source>used by {} checked rows</source>
-            <translation>utilisée par {} lignes cochées</translation>
-        </message>
-        <message>
-            <source>Base DEM layer, for “{}” — {}</source>
-            <translation>Couche MNT de base, pour « {} » — {}</translation>
+            <source>{} checked rows</source>
+            <translation>{} lignes cochées</translation>
         </message>
         <message>
             <source>Double-click to zoom the map on this polygon</source>
             <translation>Double-clic pour zoomer la carte sur ce polygone</translation>
         </message>
         <message>
-            <source>Also applied to the other selected row (ID {}).</source>
-            <translation>Appliquée aussi à l'autre ligne sélectionnée (ID {}).</translation>
+            <source>Also applied to ID {}.</source>
+            <translation>Appliqué aussi à l'ID {}.</translation>
         </message>
         <message>
-            <source>Also applied to the other selected rows (ID {}).</source>
-            <translation>Appliquée aussi aux autres lignes sélectionnées (ID {}).</translation>
+            <source>Also applied to IDs {}.</source>
+            <translation>Appliqué aussi aux ID {}.</translation>
         </message>
         <message>
-            <source>Level also applied to the other selected row (ID {}).</source>
-            <translation>Altitude appliquée aussi à l'autre ligne sélectionnée (ID {}).</translation>
+            <source>Level also applied to ID {}.</source>
+            <translation>Altitude appliquée aussi à l'ID {}.</translation>
         </message>
         <message>
-            <source>Level also applied to the other selected rows (ID {}).</source>
-            <translation>Altitude appliquée aussi aux autres lignes sélectionnées (ID {}).</translation>
+            <source>Level also applied to IDs {}.</source>
+            <translation>Altitude appliquée aussi aux ID {}.</translation>
         </message>
         <message>
             <source>Base level of the polygon ({}):</source>
@@ -754,52 +698,48 @@ Les détails sont dans le panneau « Journal des messages » (onglet « {} »).<
             <translation>Toutes les lignes</translation>
         </message>
         <message>
-            <source>3D view of the base of polygon {}…</source>
-            <translation>Vue 3D de la base du polygone {}…</translation>
+            <source>3D view of ID {}</source>
+            <translation>Vue 3D de l'ID {}</translation>
         </message>
         <message>
             <source>Give one base method to the selected ({}), checked or all rows</source>
             <translation>Donner une méthode de base aux lignes sélectionnées ({}), cochées ou à toutes les lignes</translation>
         </message>
         <message>
-            <source>Click a row to see how its base is computed.</source>
-            <translation>Cliquez sur une ligne pour voir comment sa base est calculée.</translation>
-        </message>
-        <message>
-            <source>Polygon {}</source>
-            <translation>Polygone {}</translation>
-        </message>
-        <message>
-            <source>Polygon {} – {}</source>
-            <translation>Polygone {} – {}</translation>
-        </message>
-        <message>
-            <source>{}: not computed</source>
-            <translation>{} : non calculé</translation>
+            <source>ID {}: not computed</source>
+            <translation>ID {} : non calculé</translation>
         </message>
         <message>
             <source>Enter the manual level of this polygon.</source>
             <translation>Saisissez l'altitude imposée de ce polygone.</translation>
         </message>
         <message>
-            <source>Click a row of the table first: the 3D view shows the polygon of that row.</source>
-            <translation>Cliquez d'abord sur une ligne du tableau : la vue 3D montre le polygone de cette ligne.</translation>
+            <source>Click a row of the table first.</source>
+            <translation>Cliquez d'abord sur une ligne du tableau.</translation>
         </message>
         <message>
-            <source>{} of {} checked</source>
-            <translation>{} sur {} cochés</translation>
+            <source>Compute {} volume</source>
+            <translation>Calculer {} volume</translation>
         </message>
         <message>
-            <source>Compute volumes ({} polygon)</source>
-            <translation>Calculer les volumes ({} polygone)</translation>
-        </message>
-        <message>
-            <source>Compute volumes ({} polygons)</source>
-            <translation>Calculer les volumes ({} polygones)</translation>
+            <source>Compute {} volumes</source>
+            <translation>Calculer {} volumes</translation>
         </message>
         <message>
             <source>Error</source>
             <translation>Erreur</translation>
+        </message>
+        <message>
+            <source>above</source>
+            <translation>au-dessus</translation>
+        </message>
+        <message>
+            <source>below</source>
+            <translation>au-dessous</translation>
+        </message>
+        <message>
+            <source>Total</source>
+            <translation>Total</translation>
         </message>
         <message>
             <source>Warning</source>
@@ -876,24 +816,24 @@ Basé sur le Volume Calculation Tool créé à l'origine par REDcatch GmbH (www.
             <translation>La base est une surface courbe lisse (spline de plaque mince) ajustée sur le terrain dans un anneau autour du polygone (largeur de l'anneau et raideur réglées pour chaque polygone dans la vue 3D ; les autres polygones cochés sont exclus de l'anneau). Elle prolonge la forme du terrain (vallon, bombement, changement de pente) sous le stock.</translation>
         </message>
         <message>
-            <source>The base DEM layer (in 'Settings of the base methods') is used as comparison surface. Useful for cut/fill, terrain change or comparing two surveys.</source>
-            <translation>La « Couche MNT de base » (dans « Réglages des méthodes de base ») sert de surface de comparaison. Utile pour les déblais/remblais, l'évolution du terrain ou la comparaison de deux levés.</translation>
+            <source>The base DEM layer (chosen under the table) is used as comparison surface. Useful for cut/fill, terrain change or comparing two surveys.</source>
+            <translation>La couche MNT de base (choisie sous le tableau) sert de surface de comparaison. Utile pour le déblai/remblai, l'évolution du terrain ou la comparaison de deux levés.</translation>
         </message>
         <message>
             <source>A constant base height entered for the polygon. Useful when the reference elevation is known.</source>
             <translation>Une altitude de base constante saisie pour le polygone. Utile quand l'altitude de référence est connue.</translation>
         </message>
         <message>
-            <source>Cut and fill (above and below the base)</source>
-            <translation>Déblai et remblai (au-dessus et au-dessous de la base)</translation>
+            <source>Cut and fill</source>
+            <translation>Déblai et remblai</translation>
         </message>
         <message>
-            <source>Above the base only (stockpile)</source>
-            <translation>Au-dessus de la base uniquement (stock)</translation>
+            <source>Above the base (stockpile)</source>
+            <translation>Au-dessus de la base (stock)</translation>
         </message>
         <message>
-            <source>Below the base only (pit)</source>
-            <translation>Au-dessous de la base uniquement (fosse)</translation>
+            <source>Below the base (pit)</source>
+            <translation>Au-dessous de la base (fosse)</translation>
         </message>
         <message>
             <source>units</source>
@@ -983,140 +923,112 @@ Basé sur le Volume Calculation Tool créé à l'origine par REDcatch GmbH (www.
             <translation>Calcul de volumes</translation>
         </message>
         <message>
-            <source>Input layers</source>
-            <translation>Couches en entrée</translation>
+            <source>Layers</source>
+            <translation>Couches</translation>
         </message>
         <message>
-            <source>Areas (polygon layer)</source>
-            <translation>Emprises (couche de polygones)</translation>
+            <source>Polygon layer: one polygon per stockpile or pit</source>
+            <translation>Couche de polygones : un polygone par stock ou fosse</translation>
         </message>
         <message>
-            <source>Height layer (DEM raster or LAS/LAZ ground point cloud)</source>
-            <translation>Couche d'altitude (raster MNT ou nuage de points LAS/LAZ du sol)</translation>
+            <source>Polygons</source>
+            <translation>Polygones</translation>
         </message>
         <message>
-            <source>Band:</source>
-            <translation>Bande :</translation>
+            <source>Heights: DEM raster, or LAS/LAZ point cloud of the ground</source>
+            <translation>Altitudes : MNT raster, ou nuage de points LAS/LAZ du sol</translation>
         </message>
         <message>
-            <source>DEM resolution from the point cloud (triangulation)</source>
-            <translation>Résolution du MNT issu du nuage de points (triangulation)</translation>
+            <source>DEM / point cloud</source>
+            <translation>MNT / nuage de points</translation>
+        </message>
+        <message>
+            <source>Band</source>
+            <translation>Bande</translation>
         </message>
         <message>
             <source>Cell size of the DEM interpolated (TIN) from the points. About the mean point spacing is a good value.</source>
             <translation>Taille de maille du MNT interpolé (TIN) à partir des points. L'espacement moyen des points est une bonne valeur.</translation>
         </message>
         <message>
+            <source>TIN resolution</source>
+            <translation>Résolution TIN</translation>
+        </message>
+        <message>
             <source>Keep only the points classified as ground (Classification = 2). Leave unchecked if the file already contains only ground points that are not classified.</source>
             <translation>Ne garder que les points classés sol (Classification = 2). Laisser décoché si le fichier ne contient déjà que des points du sol non classés.</translation>
         </message>
         <message>
-            <source>Use only the points classified as ground (class 2)</source>
-            <translation>Utiliser uniquement les points classés sol (classe 2)</translation>
+            <source>Ground class only</source>
+            <translation>Classe sol uniquement</translation>
         </message>
         <message>
             <source>Interpolates the WHOLE point cloud (not only the polygons area), saves the DEM next to the LAS file (name_DEM_TIN_resolution.tif) and adds it to the project as a hillshade, ready for print layouts. The file is reused by the next calculations as long as the LAS file and the settings do not change, and the layer already in the project is left untouched.</source>
             <translation>Interpole TOUT le nuage de points (pas seulement l'emprise des polygones), enregistre le MNT à côté du fichier LAS (nom_DEM_TIN_résolution.tif) et l'ajoute au projet en ombrage, prêt pour les mises en page. Le fichier est réutilisé par les calculs suivants tant que le fichier LAS et les réglages ne changent pas, et la couche déjà présente dans le projet n'est pas modifiée.</translation>
         </message>
         <message>
-            <source>Keep the DEM of the whole point cloud (saved next to the LAS, hillshade in the project)</source>
-            <translation>Conserver le MNT de tout le nuage de points (enregistré à côté du LAS, ombrage dans le projet)</translation>
+            <source>Keep the DEM of the whole cloud</source>
+            <translation>Conserver le MNT du nuage entier</translation>
         </message>
         <message>
-            <source>Polygons to compute</source>
-            <translation>Polygones à calculer</translation>
-        </message>
-        <message>
-            <source>The calculation uses the base method of each row. To change several rows: select them and change one, right-click, or use "Set base method".</source>
-            <translation>Le calcul utilise la méthode de base de chaque ligne. Pour modifier plusieurs lignes : sélectionnez-les et modifiez-en une, faites un clic droit, ou utilisez « Définir la méthode de base ».</translation>
-        </message>
-        <message>
-            <source>Check every row: all polygons are computed</source>
-            <translation>Cocher toutes les lignes : tous les polygones sont calculés</translation>
+            <source>Volumes by polygon</source>
+            <translation>Volumes par polygone</translation>
         </message>
         <message>
             <source>Check all</source>
             <translation>Tout cocher</translation>
         </message>
         <message>
-            <source>Uncheck every row</source>
-            <translation>Décocher toutes les lignes</translation>
-        </message>
-        <message>
             <source>Uncheck all</source>
             <translation>Tout décocher</translation>
         </message>
         <message>
-            <source>Check only the polygons currently selected on the map</source>
-            <translation>Ne cocher que les polygones actuellement sélectionnés sur la carte</translation>
+            <source>Check only the polygons selected on the map</source>
+            <translation>Cocher uniquement les polygones sélectionnés sur la carte</translation>
         </message>
         <message>
-            <source>Check map selection only</source>
-            <translation>Cocher la sélection de la carte</translation>
+            <source>Checked rows</source>
+            <translation>Lignes cochées</translation>
         </message>
         <message>
-            <source>Show the stock of the current row in 3D with the base surface of each method</source>
-            <translation>Afficher en 3D le stock de la ligne courante avec la surface de base de chaque méthode</translation>
+            <source>3D view of the base of the current row</source>
+            <translation>Vue 3D de la base de la ligne courante</translation>
         </message>
         <message>
-            <source>3D view of the base…</source>
-            <translation>Vue 3D de la base…</translation>
+            <source>3D view</source>
+            <translation>Vue 3D</translation>
         </message>
         <message>
             <source>Give one base method to the selected, checked or all rows</source>
             <translation>Donner une méthode de base aux lignes sélectionnées, cochées ou à toutes les lignes</translation>
         </message>
         <message>
-            <source>Set base method</source>
-            <translation>Définir la méthode de base</translation>
+            <source>Method</source>
+            <translation>Méthode</translation>
         </message>
         <message>
-            <source>Re-read the features of the polygon layer (keeps the choices already made)</source>
-            <translation>Relire les entités de la couche de polygones (conserve les choix déjà faits)</translation>
+            <source>Reload the polygons of the layer (keeps the choices made)</source>
+            <translation>Recharger les polygones de la couche (conserve les choix faits)</translation>
         </message>
         <message>
             <source>Reload</source>
             <translation>Recharger</translation>
         </message>
         <message>
-            <source>Settings of the base methods</source>
-            <translation>Réglages des méthodes de base</translation>
+            <source>Select several rows to change their method together; right-click for more</source>
+            <translation>Sélectionnez plusieurs lignes pour changer leur méthode ensemble ; clic droit pour plus d'options</translation>
         </message>
         <message>
-            <source>Base DEM layer</source>
-            <translation>Couche MNT de base</translation>
+            <source>Base DEM</source>
+            <translation>MNT de base</translation>
         </message>
         <message>
-            <source>Required: select the base DEM layer.</source>
-            <translation>Obligatoire : sélectionnez la couche MNT de base.</translation>
+            <source>Surface compared with the DEM by the method 'Base DEM (surface to surface)'</source>
+            <translation>Surface comparée au MNT par la méthode « MNT de base (surface à surface) »</translation>
         </message>
         <message>
-            <source>Volume computation</source>
-            <translation>Calcul des volumes</translation>
-        </message>
-        <message>
-            <source>Count:</source>
-            <translation>Compter :</translation>
-        </message>
-        <message>
-            <source>Sampling step X:</source>
-            <translation>Pas d'échantillonnage X :</translation>
-        </message>
-        <message>
-            <source>Distance between two sampled heights. Default = DEM pixel size (exact pixel values, no resampling).</source>
-            <translation>Distance entre deux altitudes échantillonnées. Par défaut = taille de pixel du MNT (valeurs exactes des pixels, sans rééchantillonnage).</translation>
-        </message>
-        <message>
-            <source>Same step in X and Y</source>
-            <translation>Même pas en X et en Y</translation>
-        </message>
-        <message>
-            <source>X = Y</source>
-            <translation>X = Y</translation>
-        </message>
-        <message>
-            <source>Y:</source>
-            <translation>Y :</translation>
+            <source>Select the base DEM layer.</source>
+            <translation>Sélectionnez la couche MNT de base.</translation>
         </message>
         <message>
             <source>Compute volumes</source>
@@ -1127,52 +1039,96 @@ Basé sur le Volume Calculation Tool créé à l'origine par REDcatch GmbH (www.
             <translation>Annuler</translation>
         </message>
         <message>
-            <source>Output options</source>
-            <translation>Options de sortie</translation>
+            <source>Settings</source>
+            <translation>Réglages</translation>
         </message>
         <message>
-            <source>Volume unit:</source>
-            <translation>Unité de volume :</translation>
+            <source>Count</source>
+            <translation>Compter</translation>
         </message>
         <message>
-            <source>Decimal places:</source>
-            <translation>Décimales :</translation>
+            <source>Sampling step X / Y. Default = DEM pixel size (exact pixel values, no resampling).</source>
+            <translation>Pas d'échantillonnage X / Y. Par défaut = taille du pixel du MNT (valeurs exactes des pixels, sans rééchantillonnage).</translation>
         </message>
         <message>
-            <source>Add/update volume as field</source>
-            <translation>Ajouter/mettre à jour le volume dans un champ</translation>
+            <source>Step</source>
+            <translation>Pas</translation>
         </message>
         <message>
-            <source>Above field name:</source>
-            <translation>Champ « au-dessus » :</translation>
+            <source>Sampling step X. Default = DEM pixel size (exact pixel values, no resampling).</source>
+            <translation>Pas d'échantillonnage X. Par défaut = taille du pixel du MNT (valeurs exactes des pixels, sans rééchantillonnage).</translation>
         </message>
         <message>
-            <source>Below field name:</source>
-            <translation>Champ « au-dessous » :</translation>
+            <source>Same step in X and Y</source>
+            <translation>Même pas en X et en Y</translation>
+        </message>
+        <message>
+            <source>Sampling step Y. Default = DEM pixel size (exact pixel values, no resampling).</source>
+            <translation>Pas d'échantillonnage Y. Par défaut = taille du pixel du MNT (valeurs exactes des pixels, sans rééchantillonnage).</translation>
+        </message>
+        <message>
+            <source>Unit</source>
+            <translation>Unité</translation>
+        </message>
+        <message>
+            <source>Decimal places</source>
+            <translation>Décimales</translation>
+        </message>
+        <message>
+            <source>Dec.</source>
+            <translation>Déc.</translation>
+        </message>
+        <message>
+            <source>Output</source>
+            <translation>Sortie</translation>
+        </message>
+        <message>
+            <source>Add or update the volume fields of the polygon layer (and the base method of each polygon)</source>
+            <translation>Ajoute ou met à jour les champs de volume de la couche de polygones (et la méthode de base de chaque polygone)</translation>
+        </message>
+        <message>
+            <source>Write the volumes to the layer</source>
+            <translation>Écrire les volumes dans la couche</translation>
+        </message>
+        <message>
+            <source>Names of the fields: above / below the base</source>
+            <translation>Noms des champs : au-dessus / au-dessous de la base</translation>
+        </message>
+        <message>
+            <source>Fields</source>
+            <translation>Champs</translation>
+        </message>
+        <message>
+            <source>Field of the volume above the base</source>
+            <translation>Champ du volume au-dessus de la base</translation>
+        </message>
+        <message>
+            <source>Field of the volume below the base</source>
+            <translation>Champ du volume au-dessous de la base</translation>
         </message>
         <message>
             <source>Replaces the labeling of the polygon layer by the calculated volumes</source>
             <translation>Remplace l'étiquetage de la couche de polygones par les volumes calculés</translation>
         </message>
         <message>
-            <source>Label polygons with the volumes</source>
-            <translation>Étiqueter les polygones avec les volumes</translation>
+            <source>Label the polygons</source>
+            <translation>Étiqueter les polygones</translation>
         </message>
         <message>
             <source>Optional: field shown above the volume in the labels (e.g. the material)</source>
             <translation>Facultatif : champ affiché au-dessus du volume dans les étiquettes (par ex. le matériau)</translation>
         </message>
         <message>
-            <source>Label name field:</source>
-            <translation>Champ du nom dans l'étiquette :</translation>
+            <source>Name</source>
+            <translation>Nom</translation>
         </message>
         <message>
             <source>Raster of the height above the base (normalised DSM) over the computed polygons, saved next to the height layer (file name ending with _nDOM.tif)</source>
             <translation>Raster de la hauteur au-dessus de la base (MNS normalisé) sur les polygones calculés, enregistré à côté de la couche d'altitude (nom de fichier se terminant par _nDOM.tif)</translation>
         </message>
         <message>
-            <source>Create height-above-base raster (nDSM)</source>
-            <translation>Créer le raster des hauteurs au-dessus de la base (MNS normalisé)</translation>
+            <source>Create the nDSM</source>
+            <translation>Créer le MNS normalisé</translation>
         </message>
         <message>
             <source>Log</source>

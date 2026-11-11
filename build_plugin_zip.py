@@ -17,6 +17,7 @@ PACKAGE = "volume_calculation_latitude"      # folder name of the installed plug
 RUNTIME_FILES = [
     "__init__.py",
     "base_preview.py",
+    "theme.py",
     "translation.py",
     "volume_calculation_tool.py",
     "volume_calculation_tool_dialog.py",

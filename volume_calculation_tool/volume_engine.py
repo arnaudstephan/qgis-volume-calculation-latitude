@@ -172,7 +172,7 @@ _BASE_EXPLANATIONS = {
         "under the stockpile."
     ),
     BaseLevelOptions.USE_DEM_LAYER: tr_noop(
-        "The base DEM layer (in 'Settings of the base methods') is used as comparison surface. "
+        "The base DEM layer (chosen under the table) is used as comparison surface. "
         "Useful for cut/fill, terrain change or comparing two surveys."
     ),
     BaseLevelOptions.MANUAL_BASE_LEVEL: tr_noop(
@@ -219,9 +219,9 @@ class CountOptions(Enum):
 
 
 _COUNT_LABELS = {
-    CountOptions.COUNT_ABOVE_AND_BELOW: tr_noop("Cut and fill (above and below the base)"),
-    CountOptions.COUNT_ONLY_ABOVE: tr_noop("Above the base only (stockpile)"),
-    CountOptions.COUNT_ONLY_BELOW: tr_noop("Below the base only (pit)"),
+    CountOptions.COUNT_ABOVE_AND_BELOW: tr_noop("Cut and fill"),
+    CountOptions.COUNT_ONLY_ABOVE: tr_noop("Above the base (stockpile)"),
+    CountOptions.COUNT_ONLY_BELOW: tr_noop("Below the base (pit)"),
 }
 
 # key -> (label, size of one unit in m3)

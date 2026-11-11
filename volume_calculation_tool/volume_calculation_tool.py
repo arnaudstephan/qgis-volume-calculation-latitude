@@ -31,12 +31,14 @@
  ***************************************************************************/
 """
 
+import html
 import math
 import os.path
 import tempfile
 import traceback
 from datetime import datetime
 
+from qgis.PyQt.QtCore import QLocale
 from qgis.PyQt.QtGui import QColor, QFont, QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.core import (
@@ -73,6 +75,7 @@ try:
 except ImportError:  # pragma: no cover
     NULL = None
 
+from .theme import ERROR_COLOR
 from .translation import install_translator, remove_translator, tr, tr_noop
 from .volume_calculation_tool_dialog import VolumeCalculationToolDialog
 from .volume_engine import (
@@ -383,8 +386,7 @@ class VolumeCalculationTool:
             import matplotlib  # noqa: F401
             from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
         except ImportError as exc:
-            self.dlg.popWarningBox(tr("The 3D view needs the Python library matplotlib, not found in this "
-                                      "QGIS installation ({}).").format(exc))
+            self.dlg.popWarningBox(tr("The 3D view needs the Python library matplotlib ({}).").format(exc))
             return
         try:
             computer, method, title = self.buildBasePreview(fid, BasePreviewComputer)
@@ -428,9 +430,8 @@ class VolumeCalculationTool:
         height_layer = dlg.mFieldComboHeightLayer.currentLayer()
         vector_layer = dlg.mFieldComboPolygon.currentLayer()
         if isinstance(height_layer, QgsPointCloudLayer):
-            raise UserInputError(tr("The 3D view needs a DEM raster as height layer. With a point cloud, check "
-                                    "'Keep the DEM of the whole point cloud', compute once, then select that DEM "
-                                    "as height layer."))
+            raise UserInputError(tr("The 3D view needs a DEM raster: with a point cloud, check 'Keep the DEM of "
+                                    "the whole cloud', compute, then select that DEM."))
         if vector_layer is None or not isinstance(height_layer, QgsRasterLayer) or not height_layer.isValid():
             raise UserInputError(tr("Select a polygon layer and a valid DEM height layer."))
         band = dlg.mFieldComboBand.currentBand()
@@ -454,13 +455,13 @@ class VolumeCalculationTool:
         # base DEM (only used by the 'Base DEM' method; without it that method shows its error)
         # A layer that cannot be used (web tiles, geographic CRS...) only blocks that method, not the view.
         base_provider, base_band, base_crs_wkts = None, 1, None
-        base_problem = tr("No base DEM layer selected in 'Settings of the base methods'.")
+        base_problem = tr("No base DEM layer selected.")
         base_layer = dlg.mFieldComboHeightLayerBase.currentLayer()
         if base_layer is not None:
             provider = base_layer.dataProvider() if base_layer.isValid() else None
             if provider is None or provider.xSize() <= 0 or provider.ySize() <= 0:
-                base_problem = tr("The base DEM layer '{}' is not a DEM with a pixel grid (web map / tiles?): "
-                                  "select an elevation raster.").format(base_layer.name())
+                base_problem = tr("'{}' is not a DEM with a pixel grid (web tiles?): select an elevation "
+                                  "raster.").format(base_layer.name())
             elif dlg.mFieldComboBandBase.currentBand() < 1:
                 base_problem = tr("Select a band of the base DEM layer.")
             elif not base_layer.crs().isValid() or base_layer.crs().isGeographic():
@@ -508,9 +509,9 @@ class VolumeCalculationTool:
                                   base_problem=base_problem,
                                   spline_params=(choice["ring"], choice["stiffness"]))
         if choice["name"]:
-            title = tr("3D view of the base – polygon {} – {}").format(fid, choice["name"])
+            title = tr("3D view – ID {} – {}").format(fid, choice["name"])
         else:
-            title = tr("3D view of the base – polygon {}").format(fid)
+            title = tr("3D view – ID {}").format(fid)
         return computer, choice["method"], title
 
     # ------------------------------------------------------------------ workflow
@@ -539,7 +540,7 @@ class VolumeCalculationTool:
         if plan is None:
             return
         if plan["reuse"]:
-            self.appendLogLine(tr("Step 1/2: DEM already interpolated from '{}' with these settings, reused: {}")
+            self.appendLogLine(tr("DEM of point cloud '{}' reused: {}")
                                .format(cloud.name(), plan["output"]))
             self.onPointCloudDemReady(cloud, plan)
             return
@@ -555,7 +556,7 @@ class VolumeCalculationTool:
         task.executed.connect(self.onPointCloudConverted)
         task.progressChanged.connect(self.updateProgressBar)
         self.task = task
-        self.appendLogLine(tr("Step 1/2: interpolating a DEM from point cloud '{}' ({})...").format(cloud.name(), note))
+        self.appendLogLine(tr("DEM from point cloud '{}' ({})…").format(cloud.name(), note))
         dlg.progressBar.setValue(0)
         dlg.lockupGUIDuringCalculation()
         QgsApplication.taskManager().addTask(task)
@@ -664,20 +665,19 @@ class VolumeCalculationTool:
             output = (results or {}).get("OUTPUT") or conversion.get("output")
             if not success:
                 if self.cancel_requested_flag():
-                    self.appendLogLine(tr("Operation cancelled by user. No output was written."))
+                    self.appendLogLine(tr("Cancelled: nothing written."))
                     self.dlg.progressBar.setValue(0)
                     return
                 details = feedback.textLog().strip().splitlines()[-8:] if feedback is not None else []
                 hint = ""
                 if self.dlg.checkBoxGroundOnly.isChecked():
-                    hint = "\n\n" + tr("If the file contains only ground points that are not classified, uncheck "
-                                       "'Use only the points classified as ground'.")
+                    hint = "\n\n" + tr("Unclassified ground points? Uncheck 'Ground class only'.")
                 self.dlg.popFatalErrorBox(tr("The point cloud could not be interpolated into a DEM.") + "\n\n"
                                           + "\n".join(details) + hint)
                 self.dlg.progressBar.setValue(0)
                 return
             plan = dict(conversion["plan"], output=output)
-            self.appendLogLine(tr("Step 1/2 done: DEM written to {}").format(output))
+            self.appendLogLine(tr("DEM written: {}").format(output))
             self.onPointCloudDemReady(conversion["cloud"], plan)
         except Exception:
             trace = traceback.format_exc()
@@ -788,9 +788,8 @@ class VolumeCalculationTool:
         if not dem_crs.isValid():
             raise UserInputError(tr("The DEM height layer has no coordinate reference system."))
         if dem_crs.isGeographic():
-            raise UserInputError(tr(
-                "The DEM height layer uses a geographic CRS ({}), in degrees. Volumes need a projected CRS "
-                "in metres or feet: reproject the DEM first (Raster > Projections > Warp).").format(dem_crs.authid()))
+            raise UserInputError(tr("The DEM uses a geographic CRS ({}): reproject it to a projected CRS "
+                                    "(metres or feet).").format(dem_crs.authid()))
         linear_factor = crs_linear_factor_to_meters(dem_crs)
         if linear_factor is None:
             raise UserInputError(tr("The map unit of the DEM CRS ({}) is not a supported distance unit.")
@@ -829,8 +828,7 @@ class VolumeCalculationTool:
             if not vector_layer.isEditable():
                 provider = vector_layer.dataProvider()
                 if not provider_has_capability(provider, "ChangeAttributeValues"):
-                    raise UserInputError(tr("The attributes of layer '{}' cannot be changed (read-only format?). "
-                                            "Uncheck 'Add/update volume as field' or use another format.")
+                    raise UserInputError(tr("Layer '{}' is read-only: uncheck 'Write the volumes to the layer'.")
                                          .format(vector_layer.name()))
                 if not provider_has_capability(provider, "AddAttributes"):
                     names = [name_pos, name_neg, BASE_METHOD_FIELD, BASE_LEVEL_FIELD]
@@ -848,13 +846,11 @@ class VolumeCalculationTool:
         if uses_dem:
             base_layer = dlg.mFieldComboHeightLayerBase.currentLayer()
             if base_layer is None or not base_layer.isValid():
-                raise UserInputError(tr("Some checked rows use the method '{}': select a valid base DEM layer in "
-                                        "'Settings of the base methods'.")
+                raise UserInputError(tr("Select a valid base DEM layer (method “{}”).")
                                      .format(BaseLevelOptions.USE_DEM_LAYER.short_label))
             if base_layer.dataProvider().xSize() <= 0 or base_layer.dataProvider().ySize() <= 0:
-                raise UserInputError(tr("The base DEM layer '{}' is not a DEM with a pixel grid (web map / tiles?): "
-                                        "select an elevation raster in 'Settings of the base methods'.")
-                                     .format(base_layer.name()))
+                raise UserInputError(tr("'{}' is not a DEM with a pixel grid (web tiles?): select an elevation "
+                                        "raster.").format(base_layer.name()))
             base_band = dlg.mFieldComboBandBase.currentBand()
             if base_band < 1:
                 raise UserInputError(tr("Select a band of the DEM base layer."))
@@ -866,8 +862,8 @@ class VolumeCalculationTool:
                     raise UserInputError(tr("The base DEM uses a geographic CRS ({}): reproject it first.")
                                          .format(base_crs.authid()))
                 base_crs_wkts = (crs_to_gdal_wkt(dem_crs), crs_to_gdal_wkt(base_crs))
-                warnings.append(tr("The base DEM ({}) is in another CRS than the height DEM ({}): each cell centre "
-                                   "is transformed to read the base DEM.").format(base_crs.authid(), dem_crs.authid()))
+                warnings.append(tr("Base DEM ({}) reprojected on the fly to the DEM CRS ({}).")
+                                .format(base_crs.authid(), dem_crs.authid()))
             base_provider = base_layer.dataProvider().clone()
 
         # ---- polygons, in the DEM CRS ---------------------------------------------
@@ -915,8 +911,8 @@ class VolumeCalculationTool:
         total_cells = estimate_cell_count([j.geometry for j in jobs], extent.xMinimum(), extent.yMaximum(), step_x, step_y)
         if total_cells > LARGE_JOB_CELLS:
             if not dlg.askOkCancel(tr("Large calculation"),
-                                   tr("About {:.0f} million sampling cells will be evaluated, this can take a while. "
-                                      "Increase the sampling step to go faster.\n\nContinue?")
+                                   tr("About {:.0f} million cells to sample: this can take a while (a larger "
+                                      "step is faster).\n\nContinue?")
                                    .format(total_cells / 1e6)):
                 return None
 
@@ -989,7 +985,7 @@ class VolumeCalculationTool:
                 self.dlg.popFatalErrorBox(tr("The calculation failed: {}\n\nDetails are in the Log Messages panel "
                                              "(tab '{}').").format(task.exception, MESSAGE_CATEGORY))
             else:
-                self.appendLogLine(tr("Operation cancelled by user. No output was written."))
+                self.appendLogLine(tr("Cancelled: nothing written."))
             return
 
         results = task.results
@@ -1016,13 +1012,12 @@ class VolumeCalculationTool:
 
         failed = [r for r in results.values() if not r.ok]
         self.dlg.progressBar.setValue(100)
-        self.dlg.progressBar.setFormat(tr("{}/{} polygons computed").format(len(ctx["jobs"]) - len(failed),
-                                                                           len(ctx["jobs"])))
+        self.dlg.progressBar.setFormat(tr("{}/{} computed").format(len(ctx["jobs"]) - len(failed),
+                                                                  len(ctx["jobs"])))
         if len(failed) == 1:
-            self.dlg.popWarningBox(tr("1 polygon could not be computed, see the log for the reason."))
+            self.dlg.popWarningBox(tr("1 polygon not computed: see the log."))
         elif failed:
-            self.dlg.popWarningBox(tr("{} polygons could not be computed, see the log for the reasons.")
-                                   .format(len(failed)))
+            self.dlg.popWarningBox(tr("{} polygons not computed: see the log.").format(len(failed)))
 
     def showResultsInTable(self, results, ctx, stored=False):
         """Above / below volumes of each polygon in the table (tooltip: base and warnings)."""
@@ -1216,65 +1211,40 @@ class VolumeCalculationTool:
         unit_key = ctx["unit_key"]
         unit_label = VOLUME_UNITS[unit_key][0]
         decimals = ctx["decimals"]
-        dem_unit = ctx["dem_unit"]
         counting = ctx["counting"]
+        locale = QLocale()
 
         def fmt(volume_m3):
-            return "{:.{d}f} {u}".format(convert_volume(volume_m3, unit_key), d=decimals, u=unit_label)
+            return "{} {}".format(locale.toString(convert_volume(volume_m3, unit_key), "f", decimals), unit_label)
 
-        self.appendLogLine(tr("========== Volume Calculation =========="))
-        self.appendLogLine(tr("Time: {}").format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        self.appendLogLine(tr("Polygon Layer: {}").format(ctx["vector_layer"].name()))
-        self.appendLogLine(tr("Height Layer: {}").format(ctx["height_layer"].name()))
-        if ctx.get("height_note"):
-            self.appendLogLine(tr("Heights from {}").format(ctx["height_note"]))
-        if ctx["base_layer"] is not None:
-            self.appendLogLine(tr("Base DEM Layer: {}").format(ctx["base_layer"].name()))
-        self.appendLogLine(tr("Counting Option: {}").format(str(counting)))
-        self.appendLogLine(tr("Sampling step: {} x {} {} (DEM pixel: {:.4g} x {:.4g} {})").format(
-            ctx["step_x"], ctx["step_y"], dem_unit, ctx["pixel_x"], ctx["pixel_y"], dem_unit))
+        # only what the table does not show: warnings, problems of the polygons, and the total
+        # (the volumes and the base of each polygon are in the table and its tooltips)
+        self.appendLogLine("<b>{}</b> · {} · {}".format(datetime.now().strftime('%H:%M:%S'),
+                                                        html.escape(ctx["vector_layer"].name()),
+                                                        html.escape(ctx["height_layer"].name())))
+        warnings = list(ctx["warnings"])
         if ctx["step_x"] > ctx["pixel_x"] * 1.0001 or ctx["step_y"] > ctx["pixel_y"] * 1.0001:
-            self.appendLogLine(tr("Note: step larger than the DEM pixel, part of the DEM is not used."))
-        self.appendLogLine(tr("Heights are assumed to be in the CRS unit ({}).").format(dem_unit))
-        for note in ctx.get("notes", []):
-            self.appendLogLine(tr("Note: {}").format(note))
-        for warning in ctx["warnings"]:
-            self.appendLogLine(tr("Warning: {}").format(warning))
-        if ctx["ndom_path"]:
-            self.appendLogLine(tr("Height-above-base raster (nDSM): {}").format(ctx["ndom_path"]))
-
-        indent = "  "
-        self.appendLogLine(tr("---------- Results ----------"))
-        total_above = 0.0
-        total_below = 0.0
+            warnings.append(tr("step larger than the DEM pixel, part of the DEM is not used."))
         for job in ctx["jobs"]:
             res = results.get(job.fid) or PolygonResult(job.fid, job.name, job.method)
-            if job.name:
-                self.appendLogLine(tr("Polygon Id: {} ({})").format(job.fid, job.name))
-            else:
-                self.appendLogLine(tr("Polygon Id: {}").format(job.fid))
-            self.appendLogLine(indent + tr("Base: {} - {}").format(job.method.short_label,
-                                                                   res.base_description(dem_unit)))
             if not res.ok:
-                self.appendLogLine(indent + tr("ERROR: {}").format(res.error))
+                warnings.append(tr("ID {}: not computed — {}").format(job.fid, res.error))
                 continue
-            if counting.writes_above:
-                self.appendLogLine(indent + tr("Above Volume: {}").format(fmt(res.above_m3)))
-                total_above += res.above_m3
-            if counting.writes_below:
-                self.appendLogLine(indent + tr("Below Volume: {}").format(fmt(res.below_m3)))
-                total_below += res.below_m3
             if res.cells_inside and res.coverage < COVERAGE_WARNING_THRESHOLD:
-                self.appendLogLine(indent + tr("Warning: only {:.1f} % of the polygon has DEM data (nodata or outside "
-                                               "the DEM), the volume is underestimated.").format(res.coverage * 100.0))
+                warnings.append(tr("ID {}: only {:.1f} % of the polygon has DEM data, volume underestimated.")
+                                .format(job.fid, res.coverage * 100.0))
             for note in res.notes:
-                self.appendLogLine(indent + tr("Note: {}").format(note))
-        if len(ctx["jobs"]) > 1:
-            self.appendLogLine(tr("---------- Total ----------"))
-            if counting.writes_above:
-                self.appendLogLine(indent + tr("Above Volume: {}").format(fmt(total_above)))
-            if counting.writes_below:
-                self.appendLogLine(indent + tr("Below Volume: {}").format(fmt(total_below)))
+                warnings.append(tr("ID {}: {}").format(job.fid, note))
+        for warning in warnings:
+            self.appendLogLine("<span style='color:{};'>{}</span>".format(
+                ERROR_COLOR, html.escape(tr("Warning: {}").format(warning))))
+        ok = [results[job.fid] for job in ctx["jobs"] if job.fid in results and results[job.fid].ok]
+        totals = []
+        if counting.writes_above:
+            totals.append(tr("above {}").format(fmt(sum(res.above_m3 for res in ok))))
+        if counting.writes_below:
+            totals.append(tr("below {}").format(fmt(sum(res.below_m3 for res in ok))))
+        self.appendLogLine("<b>{}</b>".format(html.escape(tr("Total: {}").format(" · ".join(totals)))))
         self.appendLogLine()
         scroll_bar = self.dlg.logOutput.verticalScrollBar()
         scroll_bar.setValue(scroll_bar.maximum())
@@ -1300,14 +1270,8 @@ class VolumeCalculationTool:
                   if isinstance(layer, QgsRasterLayer) and layer_file_path(layer)
                   and normalized_path(layer_file_path(layer)) == target]
         if loaded:
-            if kind == "ndom":
-                title = tr("nDOM output exists")
-                text = tr('The nDOM output "{}" is loaded in QGIS. Press OK to close the layer and overwrite it, '
-                          'or Cancel to return to the plugin.')
-            else:
-                title = tr("interpolated DEM exists")
-                text = tr('The interpolated DEM "{}" is loaded in QGIS. Press OK to close the layer and overwrite '
-                          'it, or Cancel to return to the plugin.')
+            title = tr("Overwrite the nDSM") if kind == "ndom" else tr("Overwrite the DEM")
+            text = tr('"{}" is loaded in QGIS: close the layer and overwrite the file?')
             if not self.dlg.askOkCancel(title, text.format(output_path)):
                 return False
             for layer in loaded:

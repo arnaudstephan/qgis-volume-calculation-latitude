@@ -15,9 +15,9 @@ The volume calculation tool is a plugin for QGIS which allows for easy calculati
    of ground points**. A point cloud is triangulated (TIN, PDAL tools of QGIS >= 3.32) into a DEM at the
    chosen resolution, only over the included polygons; optionally only class 2 (ground) points are used,
    and the interpolated DEM can be saved next to the LAS file and added to the project.
-2. In the polygon table ("Polygons to compute"), check the polygons to compute and choose for
+2. In the polygon table ("Volumes by polygon"), check the polygons to compute and choose for
    **each polygon** its base method. The calculation only uses the method of each row. To change
-   several rows at once, select them and change one of them, right-click, or use *Set base method*
+   several rows at once, select them and change one of them, right-click, or use the *Method* button
    (selected, checked or all rows):
    - *Outline – lowest point* / *Outline – average*: horizontal base from the DEM heights along the whole polygon outline
    - *Outline – best-fit plane*: inclined base fitted to the outline heights (stockpiles on sloped ground)
@@ -26,12 +26,12 @@ The volume calculation tool is a plugin for QGIS which allows for easy calculati
    - *Spline on ground ring*: smooth curved surface (thin-plate spline) fitted on a band of ground around
      the polygon (other checked polygons excluded); extends valleys, bulges and slope changes under the
      pile. Ring width and stiffness (0 supple … 10 nearly a plane) are set for each polygon in the 3D view
-     and stored in `Base_ring` / `Base_stiff`. The fit RMS residual is logged as a quality indicator.
-   - *Base DEM (surface to surface)*: compared with the base DEM layer chosen in *Settings of the base
-     methods* (reprojected on the fly if needed)
+     and stored in `Base_ring` / `Base_stiff`. The fit RMS residual is shown as a quality indicator (tooltip of the volume, 3D view).
+   - *Base DEM (surface to surface)*: compared with the base DEM layer chosen in the *Base DEM* box, shown
+     under the table when a checked row uses this method (reprojected on the fly if needed)
    - *Manual level*: constant level, asked when the method is chosen (a missing level is shown in red
      and refused by the calculation)
-3. Click *Compute volumes*. The volumes are shown in the table and the log, and written to the
+3. Click *Compute*. The volumes are shown in the table with their total, and written to the
    `V_above` / `V_below` fields (m³ by default, yd³ or ft³ optional), the method used to `Base_meth`
    and the base height to `Base_z`. The choices are read back from these fields the next time, and
    the polygons can be labeled with their volumes. Double-click a row to zoom the map on the polygon.

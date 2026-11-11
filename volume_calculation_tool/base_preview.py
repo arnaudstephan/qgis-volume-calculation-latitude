@@ -9,21 +9,23 @@ the base fits the ground of this stock. The base and the volume come from the
 calculation engine itself (same code as the real calculation, nothing re-implemented).
 """
 
+import html
 import math
 import os
 import traceback
 
 import numpy as np
-from qgis.PyQt.QtCore import Qt, QTimer
+from qgis.PyQt.QtCore import QLocale, QSize, Qt, QTimer
 from qgis.PyQt.QtGui import QIcon, QKeySequence
-from qgis.PyQt.QtWidgets import (QApplication, QComboBox, QDialog, QDoubleSpinBox, QHBoxLayout, QLabel,
-                                 QPushButton, QSizePolicy, QSlider, QStyle, QVBoxLayout)
+from qgis.PyQt.QtWidgets import (QApplication, QComboBox, QDialog, QDoubleSpinBox, QFrame, QHBoxLayout, QLabel,
+                                 QSizePolicy, QSlider, QToolButton, QVBoxLayout)
 try:
     from qgis.PyQt.QtWidgets import QShortcut   # Qt 5
 except ImportError:  # pragma: no cover
     from qgis.PyQt.QtGui import QShortcut       # Qt 6
-from qgis.core import Qgis, QgsGeometry, QgsMessageLog, QgsRectangle
+from qgis.core import Qgis, QgsApplication, QgsGeometry, QgsMessageLog, QgsRectangle
 
+from . import theme
 from .translation import tr
 from .volume_engine import (BASE_LEVEL_ORDER, DEFAULT_SPLINE_STIFFNESS, MESSAGE_CATEGORY, SPLINE_STIFFNESS_RANGE,
                             VOLUME_UNITS, AccurateVolumeCalculationTask, BaseLevelOptions, PolygonJob,
@@ -50,6 +52,46 @@ HALF_VECTOR = (LIGHT + np.array([0.0, 0.0, 1.0])) / np.linalg.norm(LIGHT + np.ar
 BASE_GLOSS = 0.55
 BASE_SHININESS = 30.0
 PROFILE_COLORS = {"A": "#c51b7d", "B": "#1b7837"}
+PROFILE_COLORS_DARK = {"A": "#f06bb4", "B": "#5cc46a"}    # same hues, readable on a dark theme
+
+# "cards" around the two figures, colour derived from the palette (light and dark QGIS themes)
+PREVIEW_STYLE = """
+QFrame#card { background: %(card)s; border: 1px solid palette(midlight); border-radius: 8px; }
+QLabel#polygonTitle { font-weight: 600; }
+"""
+
+
+def _hex(rgb):
+    """'#rrggbb' of an (r, g, b[, a]) colour in 0..1."""
+    return "#{:02x}{:02x}{:02x}".format(*(int(round(255 * float(v))) for v in list(rgb)[:3]))
+
+
+def _separator(parent):
+    line = QFrame(parent)
+    line.setFrameShape(QFrame.Shape.VLine)
+    line.setFrameShadow(QFrame.Shadow.Sunken)
+    return line
+
+
+def _card(widget, parent):
+    """`widget` in a rounded frame with the base colour of the palette."""
+    frame = QFrame(parent)
+    frame.setObjectName("card")
+    layout = QVBoxLayout(frame)
+    layout.setContentsMargins(6, 6, 6, 6)
+    layout.addWidget(widget)
+    return frame
+
+
+def _matplotlib_font():
+    """Font family of the Qt interface if matplotlib has it (same look as the dialog), else None."""
+    try:
+        from matplotlib import font_manager
+        family = QApplication.font().family()
+        font_manager.findfont(family, fallback_to_default=False)
+        return family
+    except Exception:
+        return None
 
 
 class PreviewError(Exception):
@@ -280,7 +322,7 @@ class BasePreviewDialog(QDialog):
         self.spinExaggeration.setValue(1.0)   # true scale by default
         self.spinExaggeration.setSuffix(" ×")
         self.spinExaggeration.setToolTip(tr("Vertical exaggeration: makes slopes and bumps of the base easier to see"))
-        self.labelLevel = QLabel(tr("Level:"), self)
+        self.labelLevel = QLabel(tr("Level"), self)
         self.spinLevel = QDoubleSpinBox(self)
         self.spinLevel.setRange(-10000.0, 100000.0)
         self.spinLevel.setDecimals(3)
@@ -290,7 +332,7 @@ class BasePreviewDialog(QDialog):
         self.spinLevel.setToolTip(tr("Height of the horizontal base"))
         # spline base of this polygon: width of the ground ring and stiffness
         ring, stiffness = computer.spline_params
-        self.labelRing = QLabel(tr("Ring:"), self)
+        self.labelRing = QLabel(tr("Ring"), self)
         self.spinRing = QDoubleSpinBox(self)
         self.spinRing.setRange(0.5, 200.0)
         self.spinRing.setDecimals(1)
@@ -299,7 +341,7 @@ class BasePreviewDialog(QDialog):
         self.spinRing.setValue(ring)
         self.spinRing.setToolTip(tr("Width of the band of ground around the polygon on which the spline is fitted "
                                     "(dotted line)"))
-        self.labelStiffness = QLabel(tr("Stiffness:"), self)
+        self.labelStiffness = QLabel(tr("Stiffness"), self)
         self.spinStiffness = QDoubleSpinBox(self)
         self.spinStiffness.setRange(*SPLINE_STIFFNESS_RANGE)
         self.spinStiffness.setDecimals(1)
@@ -315,53 +357,70 @@ class BasePreviewDialog(QDialog):
         self._levelTimer.setInterval(LEVEL_DEBOUNCE_MS)
 
         # previous / next polygon of the table, without going back to the main window
-        # standard arrow icons: "◀ ▶" characters are missing in some fonts
-        self.buttonPrevious = QPushButton(self.style().standardIcon(QStyle.StandardPixmap.SP_ArrowLeft), "", self)
-        self.buttonNext = QPushButton(self.style().standardIcon(QStyle.StandardPixmap.SP_ArrowRight), "", self)
+        # (QGIS arrow icons: "◀ ▶" characters are missing in some fonts)
+        self.buttonPrevious = QToolButton(self)
+        self.buttonNext = QToolButton(self)
+        self.buttonPrevious.setIcon(QgsApplication.getThemeIcon("/mActionArrowLeft.svg"))
+        self.buttonNext.setIcon(QgsApplication.getThemeIcon("/mActionArrowRight.svg"))
         self.buttonPrevious.setToolTip(tr("Previous polygon of the table (Alt+Left)"))
         self.buttonNext.setToolTip(tr("Next polygon of the table (Alt+Right)"))
         for button, key in ((self.buttonPrevious, "Alt+Left"), (self.buttonNext, "Alt+Right")):
-            button.setFixedWidth(32)
-            button.setAutoDefault(False)
+            button.setAutoRaise(True)
             button.setEnabled(navigate is not None)
             QShortcut(QKeySequence(key), self, activated=button.click)
         self.labelPolygon = QLabel(self)
+        self.labelPolygon.setObjectName("polygonTitle")
         self.labelPolygon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.labelPolygon.setMinimumWidth(self.labelPolygon.fontMetrics().horizontalAdvance("ID 00000") + 8)
+        self.labelPolygon.setMinimumWidth(self.labelPolygon.fontMetrics().horizontalAdvance("ID 00000") + 16)
 
         controls = QHBoxLayout()
+        controls.setSpacing(6)
         controls.addWidget(self.buttonPrevious)
         controls.addWidget(self.labelPolygon)
         controls.addWidget(self.buttonNext)
-        controls.addSpacing(12)
-        controls.addWidget(QLabel(tr("Base method:")))
+        controls.addWidget(_separator(self))
+        labelMethod = QLabel(tr("Base"), self)
+        labelMethod.setToolTip(tr("Base method of this polygon: chosen here, it is kept for the polygon"))
+        controls.addWidget(labelMethod)
         controls.addWidget(self.comboMethod)
+        controls.addSpacing(6)
         controls.addWidget(self.labelLevel)
         controls.addWidget(self.spinLevel)
         controls.addWidget(self.labelRing)
         controls.addWidget(self.sliderRing)
         controls.addWidget(self.spinRing)
+        controls.addSpacing(6)
         controls.addWidget(self.labelStiffness)
         controls.addWidget(self.sliderStiffness)
         controls.addWidget(self.spinStiffness)
-        controls.addSpacing(12)
-        controls.addWidget(QLabel(tr("Stock:")))
-        controls.addWidget(self.comboStock)
-        controls.addSpacing(12)
-        controls.addWidget(QLabel(tr("Vertical exaggeration:")))
-        controls.addWidget(self.spinExaggeration)
         controls.addStretch(1)
+        controls.addWidget(_separator(self))
+        controls.addWidget(QLabel(tr("Stock"), self))
+        controls.addWidget(self.comboStock)
+        labelExaggeration = QLabel("Z", self)
+        labelExaggeration.setToolTip(self.spinExaggeration.toolTip())
+        controls.addSpacing(6)
+        controls.addWidget(labelExaggeration)
+        controls.addWidget(self.spinExaggeration)
 
+        # volumes of the base shown (large), and what happened to the choice (saved...)
         self.labelInfo = QLabel(self)
         self.labelInfo.setWordWrap(True)
         self.labelInfo.setTextFormat(Qt.TextFormat.RichText)
-        self.labelInfo.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        self.labelInfo.setMinimumHeight(self.labelInfo.fontMetrics().lineSpacing() * 4 + 6)
+        self.labelInfo.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.labelNote = QLabel(self)
+        self.labelNote.setTextFormat(Qt.TextFormat.RichText)
+        self.labelNote.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        summary = QHBoxLayout()
+        summary.setContentsMargins(4, 0, 4, 0)
+        summary.addWidget(self.labelInfo, 1)
+        summary.addWidget(self.labelNote)
 
         # two canvases: rotating the 3D view only redraws the 3D one, not the cross-sections
         self.figure = Figure(figsize=(6, 6))
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.canvas.setToolTip(tr("Drag to rotate, right-drag to zoom"))
         self.figureProfiles = Figure(figsize=(4, 6))
         self.canvasProfiles = FigureCanvasQTAgg(self.figureProfiles)
         self.canvasProfiles.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -369,24 +428,35 @@ class BasePreviewDialog(QDialog):
         self._fineMesh = None     # Poly3DCollection shown at rest
         self._coarseMesh = None   # lighter one, shown while rotating
         toolbar = NavigationToolbar2QT(self.canvas, self)
+        toolbar.setIconSize(QSize(18, 18))
 
-        legend = QLabel(tr(
-            "<span style='color:#2166d9;'>■</span> base under the ground (stock volume) &nbsp; "
-            "<span style='color:#d92121;'>■</span> base above the ground (counted below the base) &nbsp; "
-            "<span style='color:#b8b8b3;'>■</span> ground around the polygon &nbsp; "
-            "<b>—</b> polygon outline. &nbsp; Dashed lines: the two cross-sections on the right. "
-            "&nbsp; <i>3D view: drag to rotate, right-drag to zoom.</i>"), self)
-        legend.setWordWrap(True)
+        palette = theme.colors(self)
+        legend = QLabel(
+            "<span style='color:{};'>■</span>&nbsp;{} &nbsp;&nbsp; <span style='color:{};'>■</span>&nbsp;{} &nbsp;&nbsp; "
+            "<span style='color:{};'>■</span>&nbsp;{} &nbsp;&nbsp; <b>—</b>&nbsp;{}".format(
+                _hex(BASE_BELOW_GROUND), html.escape(tr("base below the ground")),
+                _hex(BASE_ABOVE_GROUND), html.escape(tr("base above the ground")),
+                _hex(GROUND_COLOR), html.escape(tr("ground")), html.escape(tr("outline"))), self)
+        legend.setStyleSheet("color: {};".format(palette["muted"]))
+        legend.setToolTip(tr("Blue: stock volume (above the base). Red: counted below the base. "
+                             "Dashed lines: the two cross-sections."))
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 10, 12, 8)
+        layout.setSpacing(8)
         layout.addLayout(controls)
-        layout.addWidget(self.labelInfo)
+        layout.addLayout(summary)
         views = QHBoxLayout()
-        views.addWidget(self.canvas, 3)
-        views.addWidget(self.canvasProfiles, 2)
+        views.setSpacing(10)
+        views.addWidget(_card(self.canvas, self), 3)
+        views.addWidget(_card(self.canvasProfiles, self), 2)
         layout.addLayout(views, 1)
-        layout.addWidget(legend)
-        layout.addWidget(toolbar)
+        bottom = QHBoxLayout()
+        bottom.addWidget(toolbar)
+        bottom.addStretch(1)
+        bottom.addWidget(legend)
+        layout.addLayout(bottom)
+        self.setStyleSheet(PREVIEW_STYLE % {"card": palette["card"]})
 
         # a method / level chosen here is the method kept for the polygon (table + layer)
         self.comboMethod.currentIndexChanged.connect(lambda _i: self.refresh(adopt=True))
@@ -400,6 +470,7 @@ class BasePreviewDialog(QDialog):
         self.buttonPrevious.clicked.connect(lambda: self._navigate(-1))
         self.buttonNext.clicked.connect(lambda: self._navigate(1))
         self.labelPolygon.setText(tr("ID {}").format(computer.fid))
+        self.labelPolygon.setToolTip(computer.name or "")
         self.refresh()
 
     # ------------------------------------------------------------------ data
@@ -435,6 +506,7 @@ class BasePreviewDialog(QDialog):
         self._data = None
         self.setWindowTitle(title)
         self.labelPolygon.setText(tr("ID {}").format(computer.fid))
+        self.labelPolygon.setToolTip(computer.name or "")
         widgets = (self.comboMethod, self.spinLevel, self.spinRing, self.spinStiffness)
         for widget in widgets:
             widget.blockSignals(True)
@@ -505,26 +577,38 @@ class BasePreviewDialog(QDialog):
         self.draw()
 
     def _fmt(self, volume_m3):
-        return "{:.{d}f} {u}".format(convert_volume(volume_m3, self.unit_key), d=self.decimals,
-                                     u=VOLUME_UNITS[self.unit_key][0])
+        """Volume in the output unit, written as in the table (decimal separator of the locale)."""
+        return "{} {}".format(QLocale().toString(convert_volume(volume_m3, self.unit_key), "f", self.decimals),
+                              VOLUME_UNITS[self.unit_key][0])
 
     def _updateInfo(self, method, error, note=""):
-        parts = ["<b>{}.</b> {}".format(method.short_label, method.explanation)]
+        """Volumes above / below the base in large, the base in small (the explanation of the
+        method is the tooltip of its combo box); `note`: what happened to the choice, on the right."""
+        colors = theme.colors(self)
+        parts = []
         if error:
-            parts.append(tr("<span style='color:#d0312d;'><b>Not possible for this polygon:</b> {}</span>").format(error))
+            parts.append("<span style='color:{};'><b>{}</b> {}</span>".format(
+                theme.ERROR_COLOR, html.escape(tr("Not possible for this polygon:")), html.escape(error)))
         elif self._data is not None:
             res = self._data["result"]
-            parts.append(tr("<b>Volume above the base: {} &nbsp;·&nbsp; below the base: {}</b> &nbsp; "
-                            "(base: {})").format(self._fmt(res.above_m3), self._fmt(res.below_m3),
-                                            res.base_description(self.dem_unit)))
+            figures = []
+            for volume, caption in ((res.above_m3, tr("above the base")), (res.below_m3, tr("below the base"))):
+                figures.append("<span style='font-size:15pt; font-weight:600;'>{}</span>"
+                               "<span style='color:{};'>&nbsp; {}</span>".format(
+                                   html.escape(self._fmt(volume)), colors["muted"], html.escape(caption)))
+            figures.append("<span style='color:{};'>{}</span>".format(
+                colors["muted"], html.escape(tr("base: {}").format(res.base_description(self.dem_unit)))))
+            parts.append(" &nbsp;&nbsp;&nbsp;&nbsp; ".join(figures))
             if res.cells_inside and res.coverage < 0.99:
-                parts.append(tr("<span style='color:#d0312d;'>Only {:.1f} % of the polygon has DEM data.</span>")
-                             .format(100.0 * res.coverage))
+                parts.append("<span style='color:{};'>{}</span>".format(theme.ERROR_COLOR, html.escape(
+                    tr("Only {:.1f} % of the polygon has DEM data.").format(100.0 * res.coverage))))
             for text in res.notes:
-                parts.append("<i>{}</i>".format(text))
-        if note:
-            parts.append("<span style='color:#1f6fbf;'><b>{}</b></span>".format(note))
+                parts.append("<i>{}</i>".format(html.escape(text)))
         self.labelInfo.setText("<br>".join(parts))
+        if note:
+            self.labelNote.setText("<span style='color:{};'>{}</span>".format(colors["muted"], html.escape(note)))
+        else:
+            self.labelNote.clear()
 
     def _adopt(self, method):
         """The method (and level) chosen here becomes the one of the polygon: row of the table + layer."""
@@ -548,9 +632,29 @@ class BasePreviewDialog(QDialog):
             self.canvas.draw()
 
     # ------------------------------------------------------------------ drawing
-    def draw(self):
+    def _style(self):
+        """Matplotlib settings matching the dialog: font of the interface, colours of the palette."""
+        colors = theme.colors(self)
+        rc = {"text.color": colors["text"], "axes.labelcolor": colors["muted"], "axes.edgecolor": colors["border"],
+              "xtick.color": colors["muted"], "ytick.color": colors["muted"], "xtick.labelsize": 7.5,
+              "ytick.labelsize": 7.5, "axes.labelsize": 8, "legend.fontsize": 7.5, "grid.color": colors["grid"],
+              "grid.linewidth": 0.6, "axes.facecolor": colors["card"], "figure.facecolor": colors["card"],
+              "savefig.facecolor": colors["card"]}
+        if not hasattr(self, "_font"):
+            self._font = _matplotlib_font()
+        if self._font:
+            rc["font.family"] = [self._font, "DejaVu Sans"]
+        return colors, rc
 
+    def draw(self):
+        import matplotlib
+        colors, rc = self._style()
+        with matplotlib.rc_context(rc):
+            self._draw(colors)
+
+    def _draw(self, colors):
         c = self.computer
+        profile_colors = PROFILE_COLORS_DARK if colors["dark"] else PROFILE_COLORS
         exaggeration = self.spinExaggeration.value()
         stock_mode = self.comboStock.currentData()
         if self._drawn and self.ax is not None:
@@ -558,19 +662,23 @@ class BasePreviewDialog(QDialog):
         else:
             elev, azim = 30.0, -60.0
         self.figure.clear()
+        self.figure.set_facecolor(colors["card"])
+        self.figureProfiles.set_facecolor(colors["card"])
         self.figure.subplots_adjust(left=0.0, right=1.0, top=1.0, bottom=0.03)
         self.ax = self.figure.add_subplot(111, projection="3d")
         self.ax.set_proj_type("persp", focal_length=PERSPECTIVE_FOCAL_LENGTH)
+        self._style3d(colors)
         base = self._data["base"] if self._data is not None else None
         row = int(np.argmin(np.abs(c.ys - c.cy)))
         col = int(np.argmin(np.abs(c.xs - c.cx)))
         self.figureProfiles.clear()
-        grid = self.figureProfiles.add_gridspec(2, 1, left=0.13, right=0.97, top=0.93, bottom=0.08, hspace=0.45)
+        grid = self.figureProfiles.add_gridspec(2, 1, left=0.12, right=0.97, top=0.92, bottom=0.08, hspace=0.42)
         self._drawProfile(self.figureProfiles.add_subplot(grid[0]), "A", tr("west → east"), c.xs - c.cx,
-                          c.terrain[row, :], None if base is None else base[row, :], c.inside[row, :])
+                          c.terrain[row, :], None if base is None else base[row, :], c.inside[row, :], colors)
         order = np.argsort(c.ys)   # south → north
         self._drawProfile(self.figureProfiles.add_subplot(grid[1]), "B", tr("south → north"), c.ys[order] - c.cy,
-                          c.terrain[order, col], None if base is None else base[order, col], c.inside[order, col])
+                          c.terrain[order, col], None if base is None else base[order, col], c.inside[order, col],
+                          colors)
         self.canvasProfiles.draw()
 
         faces, colors, z_values = self._surfaceFaces(1, exaggeration, stock_mode, base)
@@ -595,15 +703,15 @@ class BasePreviewDialog(QDialog):
         # traces of the cross-sections, slightly above the DEM so they stay visible
         lift = 0.02 * max(float(np.nanmax(c.terrain) - np.nanmin(c.terrain)), 0.1)
         self.ax.plot(c.xs - c.cx, np.full(c.xs.size, c.ys[row] - c.cy), c.terrain[row, :] + lift,
-                     color=PROFILE_COLORS["A"], linestyle="--", linewidth=1.4)
+                     color=profile_colors["A"], linestyle="--", linewidth=1.4)
         self.ax.plot(np.full(c.ys.size, c.xs[col] - c.cx), c.ys - c.cy, c.terrain[:, col] + lift,
-                     color=PROFILE_COLORS["B"], linestyle="--", linewidth=1.4)
+                     color=profile_colors["B"], linestyle="--", linewidth=1.4)
         for name, (x0, y0, z0, x1, y1, z1) in (
                 ("A", (c.xs[0], c.ys[row], c.terrain[row, 0], c.xs[-1], c.ys[row], c.terrain[row, -1])),
                 ("B", (c.xs[col], c.ys[-1], c.terrain[-1, col], c.xs[col], c.ys[0], c.terrain[0, col]))):
             for label, x, y, z in ((name, x0, y0, z0), (name + "'", x1, y1, z1)):
                 if np.isfinite(z):
-                    self.ax.text(x - c.cx, y - c.cy, z + 4 * lift, label, color=PROFILE_COLORS[name],
+                    self.ax.text(x - c.cx, y - c.cy, z + 4 * lift, label, color=profile_colors[name],
                                  fontweight="bold")
         self._finishAxes(z_values, exaggeration, elev, azim)
 
@@ -666,20 +774,34 @@ class BasePreviewDialog(QDialog):
         except TypeError:   # matplotlib < 3.6
             self.ax.set_box_aspect((x_range, y_range, z_range * exaggeration))
         unit = self.dem_unit
-        self.ax.set_xlabel(tr("X from centre ({})").format(unit))
-        self.ax.set_ylabel(tr("Y from centre ({})").format(unit))
-        self.ax.set_zlabel(tr("Height ({})").format(unit))
+        self.ax.set_xlabel("X ({})".format(unit))
+        self.ax.set_ylabel("Y ({})".format(unit))
+        self.ax.set_zlabel("Z ({})".format(unit))
         self.ax.view_init(elev=elev, azim=azim)
         self._drawn = True
         # synchronous: a deferred draw_idle() could fire after the window is closed (deleted canvas)
         self.canvas.draw()
 
-    def _drawProfile(self, ax, name, direction, distance, terrain, base, inside):
+    def _style3d(self, colors):
+        """Light panes and grid, small muted ticks, few height ticks (they overlapped)."""
+        from matplotlib.ticker import MaxNLocator
+        pane = theme.mix(colors["card"], colors["text"], 0.035)
+        pane = (pane.redF(), pane.greenF(), pane.blueF(), 1.0)
+        for axis in (self.ax.xaxis, self.ax.yaxis, self.ax.zaxis):
+            axis.pane.set_facecolor(pane)
+            axis.pane.set_edgecolor(colors["border"])
+            axis.line.set_color(colors["border"])
+            axis.set_major_locator(MaxNLocator(nbins=4 if axis is self.ax.zaxis else 6, steps=[1, 2, 5, 10]))
+        for name in ("x", "y", "z"):
+            self.ax.tick_params(axis=name, colors=colors["muted"], labelsize=7.5, pad=1)
+
+    def _drawProfile(self, ax, name, direction, distance, terrain, base, inside, colors):
         """Cross-section through the centre of the polygon: DEM line, base under the polygon,
         filled in blue where the base is under the DEM and in red where it is above."""
         unit = self.dem_unit
-        color = PROFILE_COLORS[name]
-        ax.plot(distance, terrain, color="0.3", linewidth=1.3, label=tr("DEM (ground and stock)"))
+        color = (PROFILE_COLORS_DARK if colors["dark"] else PROFILE_COLORS)[name]
+        ax.plot(distance, terrain, color=theme.mix(colors["text"], colors["card"], 0.2).name(), linewidth=1.3,
+                label=tr("DEM (ground and stock)"))
         if base is not None:
             under = np.where(inside, base, np.nan)
             ax.plot(distance, under, color=BASE_BELOW_GROUND[:3], linewidth=2.0, label=tr("base"))
@@ -690,21 +812,22 @@ class BasePreviewDialog(QDialog):
                                 color=BASE_ABOVE_GROUND[:3], alpha=0.45, interpolate=True, linewidth=0)
         edges = np.nonzero(np.diff(inside.astype(np.int8)))[0]
         for i in edges:
-            ax.axvline(0.5 * (distance[i] + distance[i + 1]), color="black", linewidth=0.8, linestyle=":")
+            ax.axvline(0.5 * (distance[i] + distance[i + 1]), color=colors["muted"], linewidth=0.8, linestyle=":")
         ax.set_title(tr("Section {n}–{n}' ({d})").format(n=name, d=direction), fontsize=9, color=color,
                      fontweight="bold")
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
         ax.set_xlim(distance[0], distance[-1])
         # same vertical exaggeration as the 3D view (1 = true scale); the height range is
         # enlarged to fill the frame instead of squashing the profile
         exaggeration = self.spinExaggeration.value()
         ax.set_aspect(exaggeration, adjustable="datalim")
-        ax.set_xlabel(tr("distance from centre ({}) — vertical scale × {}").format(
-            unit, self.spinExaggeration.textFromValue(exaggeration)), fontsize=8)   # "2,0" in French
-        ax.set_ylabel(tr("height ({})").format(unit), fontsize=8)
-        ax.tick_params(labelsize=8)
-        ax.grid(alpha=0.3)
+        ax.set_xlabel(tr("distance from centre ({})").format(unit))
+        ax.set_ylabel(tr("height ({})").format(unit))
+        ax.tick_params(length=3)
+        ax.grid(True)
         ax.text(0.0, 1.0, name, transform=ax.transAxes, color=color, fontweight="bold", va="bottom")
         ax.text(1.0, 1.0, name + "'", transform=ax.transAxes, color=color, fontweight="bold", va="bottom",
                 ha="right")
         if name == "A":
-            ax.legend(fontsize=7, loc="upper right", framealpha=0.8)
+            ax.legend(loc="upper right", frameon=False)

@@ -289,9 +289,11 @@ class PluginGuiTest(unittest.TestCase):
         self.assertAlmostEqual(above["pile A"], 500.0, places=1)
         self.assertAlmostEqual(above["pile B"], 300.0, places=0)
         self.assertEqual(self.values("Base_meth"), {"pile A": "TIN", "pile B": "SPLINE"})
-        log = dlg.logOutput.toPlainText()
-        self.assertIn("ring 4 m, stiffness 4", log)
-        self.assertIn("spline on", log)
+        # the base of each polygon is in the tooltip of its volume (no longer repeated in the log)
+        tip = dlg.tablePolygons.item(dlg.rowOfFid(dlg.fidOfRow(1)), COL_ABOVE).toolTip()
+        self.assertIn("ring 4 m, stiffness 4", tip)
+        self.assertIn("spline on", tip)
+        self.assertIn("Total", dlg.logOutput.toPlainText())
         # read back by a new dialog
         self.plugin.dlg.close()
         self.plugin.dlg = None
@@ -337,7 +339,7 @@ class PluginGuiTest(unittest.TestCase):
         choose(0, BaseLevelOptions.USE_DEM_LAYER)
         self.assertEqual(method(1), BaseLevelOptions.USE_DEM_LAYER)
         self.assertEqual(table.cellWidget(1, COL_LEVEL).currentIndex(), 0)   # dash, not "0.000"
-        self.assertIn("Also applied to the other selected row", dlg.labelMethodInfo.text())
+        self.assertIn("Also applied to ID", dlg.labelMethodInfo.text())
         # changed by code (not a user choice): no propagation
         self.set_row(dlg, 0, BaseLevelOptions.APPROXIMATE_VIA_AVG)
         self.assertEqual(method(1), BaseLevelOptions.USE_DEM_LAYER)
@@ -364,17 +366,19 @@ class PluginGuiTest(unittest.TestCase):
         # base DEM needed but missing: flagged before running, with the number of rows
         dlg.mFieldComboHeightLayerBase.setLayer(None)
         self.assertTrue(dlg.labelBaseDemRequired.isVisibleTo(dlg))
-        self.assertIn("used by 2 checked rows", dlg.label_11.text())
+        self.assertTrue(dlg.groupBoxMethodSettings.isVisibleTo(dlg))
+        self.assertIn("2 checked rows", dlg.label_11.text())
         table.item(1, COL_USE).setCheckState(Qt.CheckState.Unchecked)
-        self.assertIn("used by 1 checked row", dlg.label_11.text())
+        self.assertIn("1 checked row", dlg.label_11.text())
 
         # nothing checked: the run button is disabled and says so
         dlg.setIncludedFids(set())
         self.assertFalse(dlg.pushButtonStartCalculation.isEnabled())
-        self.assertIn("0 polygons", dlg.pushButtonStartCalculation.text())
+        self.assertIn("0 volumes", dlg.pushButtonStartCalculation.text())
         self.assertFalse(dlg.labelBaseDemRequired.isVisibleTo(dlg))
+        self.assertFalse(dlg.groupBoxMethodSettings.isVisibleTo(dlg))   # shown only when used
         dlg.setIncludedFids(None)
-        self.assertIn("2 polygons", dlg.pushButtonStartCalculation.text())
+        self.assertIn("2 volumes", dlg.pushButtonStartCalculation.text())
 
         # counting "above only": the below field name is not used
         dlg.mFieldComboCountingMethod.setCurrentIndex(
@@ -396,7 +400,12 @@ class PluginGuiTest(unittest.TestCase):
         self.assertEqual((above_b, below_b), ("250.0", "78.0"))
         self.assertIn("Base: Manual level", table.item(name_row["pile B"], COL_ABOVE).toolTip())
         self.assertEqual(table.cellWidget(0, COL_METHOD).property("origin"), ORIGIN_STORED)
-        self.assertEqual(dlg.progressBar.format(), "2/2 polygons computed")
+        self.assertEqual(dlg.progressBar.format(), "2/2 computed")
+        # total of the table under it
+        self.assertTrue(dlg.labelTotal.isVisibleTo(dlg))
+        for column in (COL_ABOVE, COL_BELOW):
+            total = sum(float(table.item(r, column).text().replace(",", ".")) for r in range(table.rowCount()))
+            self.assertIn("{:.1f}".format(total), dlg.labelTotal.text().replace(",", "."))
         # unit / decimals: re-formatted, not cleared
         dlg.outputAccuracy.setValue(2)
         self.assertEqual(table.item(name_row["pile B"], COL_ABOVE).text().replace(",", "."), "250.00")
@@ -586,7 +595,8 @@ class PluginGuiTest(unittest.TestCase):
         self.assertEqual(len(self.plugin.previews), 1)
         preview = self.plugin.previews[0]
         preview.canvas.draw()
-        self.assertIn("500.0 m³", preview.labelInfo.text())
+        info = lambda: preview.labelInfo.text().replace(",", ".")   # decimal separator of the locale
+        self.assertIn("500.0 m³", info())
         self.assertEqual(preview.computer.inside.sum() > 0, True)
 
         # opening the view changes nothing (the method field does not even exist yet)
@@ -607,8 +617,8 @@ class PluginGuiTest(unittest.TestCase):
                 self.assertEqual(self.values("Base_meth")["pile A"], "SPLINE")
             else:
                 self.assertIsNotNone(preview._data, (option, text))
-                self.assertIn("Volume above the base", text)
-                self.assertIn("Saved in the layer.", text)
+                self.assertIn("above the base", text)
+                self.assertIn("Saved in the layer.", preview.labelNote.text())
                 self.assertEqual(dlg.tablePolygons.cellWidget(0, COL_METHOD).currentData(), option.code)
                 self.assertEqual(self.values("Base_meth")["pile A"], option.code)
         self.assertEqual(dlg.tablePolygons.cellWidget(0, COL_METHOD).property("origin"), ORIGIN_STORED)
@@ -666,13 +676,13 @@ class PluginGuiTest(unittest.TestCase):
         preview.comboMethod.setCurrentIndex(preview.comboMethod.findData(BaseLevelOptions.MANUAL_BASE_LEVEL.code))
         self.assertTrue(preview.spinLevel.isVisibleTo(preview))
         self.assertAlmostEqual(preview.spinLevel.value(), 100.0)
-        self.assertIn("500.0 m³", preview.labelInfo.text())
+        self.assertIn("500.0 m³", info())
         self.assertAlmostEqual(dlg.tablePolygons.cellWidget(0, COL_LEVEL).value(), 100.0)   # kept at once
         preview.spinLevel.setValue(99.0)      # pile A is 16 x 16 m: +256 m3 one metre lower
         self.assertTrue(preview._levelTimer.isActive())          # taken after a short pause...
         preview._levelTimer.stop()
         preview._levelTimer.timeout.emit()
-        self.assertIn("756.0 m³", preview.labelInfo.text())
+        self.assertIn("756.0 m³", info())
         self.assertAlmostEqual(self.values("Base_z")["pile A"], 99.0)
         preview.spinLevel.setValue(99.5)      # ... or when leaving the polygon right after typing
 
@@ -686,7 +696,7 @@ class PluginGuiTest(unittest.TestCase):
         self.assertEqual(dlg.tablePolygons.currentRow(), 1)
         self.assertEqual(preview.currentMethod(), BaseLevelOptions.MANUAL_BASE_LEVEL)   # method of that row
         self.assertAlmostEqual(preview.spinLevel.value(), 100.5)
-        self.assertIn("250.0 m³", preview.labelInfo.text())
+        self.assertIn("250.0 m³", info())
         self.assertIn(str(fid_b), preview.labelPolygon.text())
         self.assertEqual(self.values("Base_meth")["pile B"], None)   # browsing does not save anything
         preview.buttonNext.click()                               # 2 rows: wraps to the first one
@@ -730,7 +740,7 @@ class PluginGuiTest(unittest.TestCase):
         self.plugin.showBasePreview(fid)
         self.assertEqual(self.messages, [])
         preview = self.plugin.previews[0]
-        self.assertIn("Volume above the base", preview.labelInfo.text())
+        self.assertIn("above the base", preview.labelInfo.text())
         preview.comboMethod.setCurrentIndex(preview.comboMethod.findData(BaseLevelOptions.USE_DEM_LAYER.code))
         self.assertIn("not a DEM with a pixel grid", preview.labelInfo.text())
         preview.close()

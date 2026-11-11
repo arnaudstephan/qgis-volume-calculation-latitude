@@ -42,12 +42,13 @@ from qgis.PyQt.QtGui import QBrush, QColor, QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QComboBox, QDoubleSpinBox,
                                  QFileDialog, QHeaderView, QInputDialog, QLabel, QMenu, QMessageBox,
                                  QPushButton, QStackedWidget, QTableWidgetItem)
-from qgis.core import Qgis, QgsMapLayerProxyModel
+from qgis.core import Qgis, QgsApplication, QgsMapLayerProxyModel
 
 from .volume_engine import (BASE_LEVEL_ORDER, VOLUME_UNITS, DEFAULT_VOLUME_UNIT, DEFAULT_RING_WIDTH,
                             DEFAULT_SPLINE_STIFFNESS,
                             BaseLevelOptions, CountOptions, convert_volume)
 from .translation import tr, tr_noop
+from . import theme
 
 DEFAULT_ATTRIBUTE_NAME = "V_above"
 DEFAULT_ATTRIBUTE_NAME_NEG = "V_below"
@@ -56,16 +57,15 @@ ATTRIBUTE_FIELD_MAX_LENGTH = 10
 SETTINGS_PREFIX = "REDcatch/VolumeCalculationTool/"
 
 COL_USE, COL_ID, COL_NAME, COL_METHOD, COL_LEVEL, COL_ABOVE, COL_BELOW = range(7)
-ROW_HEIGHT = 26
-ERROR_COLOR = "#d0312d"
-NOTE_COLOR = "#1f6fbf"
+ROW_HEIGHT = 28
+ERROR_COLOR = theme.ERROR_COLOR
+NOTE_COLOR = theme.ACCENT
 
 # where the method of a row comes from (tooltip of the method cell)
 # (translated with tr() where they are used)
 ORIGIN_STORED = tr_noop("Method stored in the layer (last calculation).")
-ORIGIN_DEFAULT = tr_noop("Default method “{}”: no method is stored in the layer for this polygon. The default "
-                         "is the last method given with “Set base method”.")
-ORIGIN_CHANGED = tr_noop("Changed in this dialog: stored in the layer at the next calculation.")
+ORIGIN_DEFAULT = tr_noop("Default method “{}” (none stored in the layer).")
+ORIGIN_CHANGED = tr_noop("Changed: stored in the layer at the next calculation.")
 
 # plural rule of the language of the translation (gettext style): "n != 1" in English (0 polygons),
 # translated as "n > 1" in the languages where 0 takes the singular (French: 0 polygone)
@@ -196,6 +196,21 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         super().__init__(parent)
         self.setupUi(self)
         self.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.svg")))
+        self.setStyleSheet(theme.style_sheet(self))
+        for button, icon in ((self.pushButtonIncludeAll, "/mActionSelectAll.svg"),
+                             (self.pushButtonUncheckAll, "/mActionDeselectAll.svg"),
+                             (self.pushButtonUseMapSelection, "/mIconSelected.svg"),
+                             (self.pushButtonPreview3D, "/mActionNew3DMap.svg"),
+                             (self.pushButtonReloadPolygons, "/mActionRefresh.svg"),
+                             (self.toolButtonSetMethod, "/mActionCalculateField.svg"),
+                             (self.toolButtonLinkSteps, "/mActionLink.svg"),
+                             (self.saveLog, "/mActionFileSave.svg"),
+                             (self.clearLog, "console/iconClearConsole.svg"),
+                             (self.pushButtonHelp, "/mActionHelpContents.svg"),
+                             (self.pushButtonAbout, None)):
+            button.setIcon(QgsApplication.getThemeIcon(icon) if icon else self.windowIcon())
+        self.labelMethodInfo.setVisible(False)
+        self.labelTotal.setVisible(False)
         self._table_layer_id = None
         self._unit_suffix = "m"
         self._running = False
@@ -261,6 +276,7 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         self.logOutput.setReadOnly(True)
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(0)
+        self.progressBar.setFormat("")
 
         # ---- remembered preferences ------------------------------------------
         self.checkBox_add_field.setChecked(_setting("add_field", True, bool))
@@ -292,10 +308,11 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         # ---- polygon table ----------------------------------------------------
         table = self.tablePolygons
         table.setColumnCount(7)
-        table.setHorizontalHeaderLabels([tr("Compute"), tr("ID"), tr("Name"), tr("Base method"),
-                                         tr("Manual level ({})").format("m"),
+        table.setHorizontalHeaderLabels(["", tr("ID"), tr("Name"), tr("Base method"),
+                                         tr("Level ({})").format("m"),
                                          tr("Above ({})").format("m³"), tr("Below ({})").format("m³")])
         table.horizontalHeaderItem(COL_USE).setToolTip(tr("Checked rows are computed"))
+        table.horizontalHeaderItem(COL_LEVEL).setToolTip(BaseLevelOptions.MANUAL_BASE_LEVEL.short_label)
         table.verticalHeader().setVisible(False)
         table.verticalHeader().setDefaultSectionSize(ROW_HEIGHT)
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -320,9 +337,6 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         self._setMethodMenu.setToolTipsVisible(True)
         self._setMethodMenu.aboutToShow.connect(lambda: self._fillSetMethodMenu(self._setMethodMenu))
         self.toolButtonSetMethod.setMenu(self._setMethodMenu)
-        # room for the menu arrow, which otherwise overlaps the text
-        self.toolButtonSetMethod.setMinimumWidth(
-            self.toolButtonSetMethod.fontMetrics().horizontalAdvance(self.toolButtonSetMethod.text()) + 40)
 
         # ---- results become outdated when an input changes ----------------------
         # (layer and band changes: see VolumeCalculationTool.onInputLayerChanged)
@@ -334,13 +348,12 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         for signal in (self.comboOutputUnit.currentIndexChanged, self.outputAccuracy.valueChanged):
             signal.connect(self._ifShown(lambda *_a: self._refreshResultTexts()))
 
-        # info line: fixed height, so the table does not jump when another row is clicked
-        self.labelMethodInfo.setMinimumHeight(self.labelMethodInfo.fontMetrics().lineSpacing() * 4 + 6)
+        # info line under the table: only shown for a note or an error of the current row
         self.labelMethodInfo.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.labelBaseDemRequired.setText(
             '<img src=":/images/themes/default/mIconWarning.svg" width="16" height="16"> '
-            '<span style="color:{}; font-weight:bold;">{}</span>'
-            .format(ERROR_COLOR, html.escape(tr("Required: select the base DEM layer."))))
+            '<span style="color:{};">{}</span>'
+            .format(ERROR_COLOR, html.escape(tr("Select the base DEM layer."))))
 
         # ---- signals ------------------------------------------------------------
         self.pushButtonPreview3D.clicked.connect(lambda: self._requestPreview(self.tablePolygons.currentRow()))
@@ -379,7 +392,6 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         """Show the point cloud options and hide the band selector for LAS/LAZ height layers."""
         self.widgetPointCloud.setVisible(is_point_cloud)
         self.mFieldComboBand.setVisible(not is_point_cloud)
-        self.label_5.setVisible(not is_point_cloud)
         if is_point_cloud:
             self._onCloudResolutionChanged(self.doubleSpinBoxCloudResolution.value())
 
@@ -409,7 +421,7 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         self.doubleSpinBoxCloudResolution.setSuffix(" " + unit_suffix)
         for spin in (self.doubleSpinBoxSampleStepX, self.doubleSpinBoxSampleStepY):
             spin.setSuffix(" " + unit_suffix)
-        self.tablePolygons.horizontalHeaderItem(COL_LEVEL).setText(tr("Manual level ({})").format(unit_suffix))
+        self.tablePolygons.horizontalHeaderItem(COL_LEVEL).setText(tr("Level ({})").format(unit_suffix))
         for row in range(self.tablePolygons.rowCount()):
             cell = self.tablePolygons.cellWidget(row, COL_LEVEL)
             if cell is not None:
@@ -418,25 +430,24 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
     # ------------------------------------------------------------------ shared method settings
     @staticmethod
     def _usage(count):
-        if count == 0:
-            return tr("not used by any checked row")
-        return _plural(count, tr("used by {} checked row"), tr("used by {} checked rows")).format(count)
+        return _plural(count, tr("{} checked row"), tr("{} checked rows")).format(count)
 
     def updateBaseDemEnabled(self):
-        """Enable the base DEM settings only when a checked row uses them, show how many rows use
-        them, and flag a missing base DEM before the calculation is started."""
-        methods = [choice["method"] for choice in self.polygonChoices(only_included=True)]
+        """Show the base DEM settings only when a checked row uses them (with the number of rows),
+        flag a missing base DEM before the calculation is started, and show the level column only
+        when a row uses a manual level."""
+        choices = self.polygonChoices(only_included=False)
+        methods = [choice["method"] for choice in choices if choice["include"]]
         dem_rows = methods.count(BaseLevelOptions.USE_DEM_LAYER)
 
-        uses_dem = dem_rows > 0 and not self._running
-        self.mFieldComboHeightLayerBase.setEnabled(uses_dem)
-        self.mFieldComboBandBase.setEnabled(uses_dem)
-        self.label_11.setEnabled(dem_rows > 0)
-        self.label_12.setEnabled(dem_rows > 0)
-        self.label_11.setText(tr("Base DEM layer, for “{}” — {}").format(
-            BaseLevelOptions.USE_DEM_LAYER.short_label, self._usage(dem_rows)))
+        self.groupBoxMethodSettings.setVisible(dem_rows > 0)
+        self.mFieldComboHeightLayerBase.setEnabled(not self._running)
+        self.mFieldComboBandBase.setEnabled(not self._running)
+        self.label_11.setText(self._usage(dem_rows))
         missing = dem_rows > 0 and self.mFieldComboHeightLayerBase.currentLayer() is None
         self.labelBaseDemRequired.setVisible(missing)
+        self.tablePolygons.setColumnHidden(
+            COL_LEVEL, not any(c["method"] == BaseLevelOptions.MANUAL_BASE_LEVEL for c in choices))
 
     # ------------------------------------------------------------------ spline base of each polygon
     @staticmethod
@@ -510,6 +521,7 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
             table.setItem(row, COL_NAME, name_item)
 
             combo = QComboBox()
+            combo.setFrame(False)
             for option in BASE_LEVEL_ORDER:
                 combo.addItem(option.short_label, option.code)
                 combo.setItemData(combo.count() - 1, option.explanation, Qt.ItemDataRole.ToolTipRole)
@@ -531,6 +543,7 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
                 table.setItem(row, column, self._resultItem(""))
         table.blockSignals(False)
         table.setUpdatesEnabled(True)
+        self._updateTotal()
         self._onTableChanged()
 
     def _rowOfWidget(self, widget, column):
@@ -609,8 +622,8 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         self._setCurrentRow(row)
         note = ""
         if others:
-            note = _plural(len(others), tr("Also applied to the other selected row (ID {})."),
-                           tr("Also applied to the other selected rows (ID {}).")).format(self._rowIds(others))
+            note = _plural(len(others), tr("Also applied to ID {}."),
+                           tr("Also applied to IDs {}.")).format(self._rowIds(others))
         self._updateMethodInfo(note)
 
     def _onRowLevelChanged(self, combo):
@@ -635,8 +648,8 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
             finally:
                 self._propagating = False
         self._setCurrentRow(row)
-        self._updateMethodInfo(_plural(len(others), tr("Level also applied to the other selected row (ID {})."),
-                                       tr("Level also applied to the other selected rows (ID {}).")).format(
+        self._updateMethodInfo(_plural(len(others), tr("Level also applied to ID {}."),
+                                       tr("Level also applied to IDs {}.")).format(
             self._rowIds(others)) if others else "")
 
     def _askLevel(self, rows):
@@ -722,7 +735,7 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         menu.setToolTipsVisible(True)
         row = self.tablePolygons.rowAt(pos.y())
         if row >= 0:
-            action = menu.addAction(tr("3D view of the base of polygon {}…").format(
+            action = menu.addAction(tr("3D view of ID {}").format(
                 self.tablePolygons.item(row, COL_ID).text()))
             action.setEnabled(not self._running)
             action.triggered.connect(lambda _checked=False, r=row: self._requestPreview(r))
@@ -739,36 +752,32 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
 
     # ---- info line under the table ---------------------------------------------
     def _updateMethodInfo(self, note=""):
+        """Line under the table: only a note (change applied to other rows) or a problem of the
+        current row; hidden otherwise (the method explanations are in the tooltips)."""
         table = self.tablePolygons
         row = table.currentRow()
         combo = table.cellWidget(row, COL_METHOD) if row >= 0 else None
-        if combo is None:
-            self.labelMethodInfo.setText("<i>{}</i>".format(
-                html.escape(tr("Click a row to see how its base is computed."))))
-            return
-        method = BaseLevelOptions.from_code(combo.currentData())
-        name = table.item(row, COL_NAME).text()
-        fid_text = table.item(row, COL_ID).text()
-        title = tr("Polygon {} – {}").format(fid_text, name) if name else tr("Polygon {}").format(fid_text)
         parts = []
-        if note:
-            parts.append("<span style='color:{};'><b>{}</b></span><br>".format(NOTE_COLOR, html.escape(note)))
-        error = self._rowError(row)
-        if error:
-            parts.append("<span style='color:{};'><b>{}</b> — {}</span><br>".format(
-                ERROR_COLOR, html.escape(tr("{}: not computed").format(title)), html.escape(error)))
-        level_cell = table.cellWidget(row, COL_LEVEL)
-        if method == BaseLevelOptions.MANUAL_BASE_LEVEL and level_cell is not None and not level_cell.isSet():
-            parts.append("<span style='color:{};'><b>{}</b></span><br>".format(
-                ERROR_COLOR, html.escape(tr("Enter the manual level of this polygon."))))
-        parts.append("<b>{}: {}.</b> {}".format(
-            html.escape(title), html.escape(method.short_label), html.escape(method.explanation)))
-        self.labelMethodInfo.setText("".join(parts))
+        if combo is not None:
+            method = BaseLevelOptions.from_code(combo.currentData())
+            if note:
+                parts.append("<span style='color:{};'>{}</span>".format(NOTE_COLOR, html.escape(note)))
+            error = self._rowError(row)
+            if error:
+                parts.append("<span style='color:{};'><b>{}</b> — {}</span>".format(
+                    ERROR_COLOR, html.escape(tr("ID {}: not computed").format(table.item(row, COL_ID).text())),
+                    html.escape(error)))
+            level_cell = table.cellWidget(row, COL_LEVEL)
+            if method == BaseLevelOptions.MANUAL_BASE_LEVEL and level_cell is not None and not level_cell.isSet():
+                parts.append("<span style='color:{};'>{}</span>".format(
+                    ERROR_COLOR, html.escape(tr("Enter the manual level of this polygon."))))
+        self.labelMethodInfo.setText("<br>".join(parts))
+        self.labelMethodInfo.setVisible(bool(parts))
 
     # ---- 3D view of the base ------------------------------------------------------
     def _requestPreview(self, row):
         if row < 0 or row >= self.tablePolygons.rowCount():
-            self.popWarningBox(tr("Click a row of the table first: the 3D view shows the polygon of that row."))
+            self.popWarningBox(tr("Click a row of the table first."))
             return
         fid = self.tablePolygons.item(row, COL_ID).data(Qt.ItemDataRole.UserRole)
         if fid is not None:
@@ -820,9 +829,9 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         """Checked rows changed (or the table was refilled): counters, run button, settings."""
         total = self.tablePolygons.rowCount()
         checked = len(self.checkedRows())
-        self.labelCheckedCount.setText(tr("{} of {} checked").format(checked, total))
-        self.pushButtonStartCalculation.setText(_plural(checked, tr("Compute volumes ({} polygon)"),
-                                                        tr("Compute volumes ({} polygons)")).format(checked))
+        self.labelCheckedCount.setText("{} / {}".format(checked, total))
+        self.pushButtonStartCalculation.setText(_plural(checked, tr("Compute {} volume"),
+                                                        tr("Compute {} volumes")).format(checked))
         self.pushButtonStartCalculation.setEnabled(checked > 0 and not self._running)
         self._updateSetMethodButton()
         self._updateMethodInfo()
@@ -947,6 +956,37 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
                 item.setText(locale.toString(convert_volume(float(item.data(RESULT_M3_ROLE)), unit_key),
                                              "f", decimals))
         table.blockSignals(False)
+        self._updateTotal()
+
+    def _updateTotal(self):
+        """Total of the volumes shown in the table, under it (hidden when there is none)."""
+        table = self.tablePolygons
+        sums = {COL_ABOVE: 0.0, COL_BELOW: 0.0}
+        found = False
+        for row in range(table.rowCount()):
+            for column in sums:
+                item = table.item(row, column)
+                if item is not None and item.data(RESULT_M3_ROLE) is not None:
+                    sums[column] += float(item.data(RESULT_M3_ROLE))
+                    found = True
+        self.labelTotal.setVisible(found)
+        if not found:
+            self.labelTotal.clear()
+            return
+        unit_key = self.selectedVolumeUnit()
+        unit_label = VOLUME_UNITS[unit_key][0]
+        locale = QLocale()
+        colors = theme.colors(self)
+        parts = []
+        for column, caption in ((COL_ABOVE, tr("above")), (COL_BELOW, tr("below"))):
+            if table.isColumnHidden(column):
+                continue
+            value = locale.toString(convert_volume(sums[column], unit_key), "f", self.outputAccuracy.value())
+            parts.append("<span style='font-size:15pt; font-weight:600;'>{}</span>"
+                         "<span style='color:{};'>&nbsp;{} {}</span>".format(
+                             html.escape(value), colors["muted"], html.escape(unit_label), html.escape(caption)))
+        self.labelTotal.setText("<span style='color:{};'>{}</span>&nbsp;&nbsp;&nbsp;{}".format(
+            colors["muted"], html.escape(tr("Total")), "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".join(parts)))
 
     def clearResults(self, rows=None):
         """Empty the result cells (all rows, or the given ones): they no longer match the inputs."""
@@ -964,15 +1004,15 @@ class VolumeCalculationToolDialog(QtWidgets.QDialog, FORM_CLASS):
         if cleared:
             self._resetProgress()
             self._updateMethodInfo()
+            self._updateTotal()
 
     # ------------------------------------------------------------------ misc
     def _updateOutputOptionsEnabled(self, *_args):
         enabled = self.checkBox_add_field.isChecked() and not self._running
         counting = self.selectedCountingOption()
         self.fieldName.setEnabled(enabled and counting.writes_above)
-        self.label_16.setEnabled(enabled and counting.writes_above)
         self.fieldName_2.setEnabled(enabled and counting.writes_below)
-        self.label_17.setEnabled(enabled and counting.writes_below)
+        self.label_16.setEnabled(enabled)
         self.checkBox_labels.setEnabled(enabled)
         name_enabled = enabled and self.checkBox_labels.isChecked()
         self.labelLabelNameField.setEnabled(name_enabled)

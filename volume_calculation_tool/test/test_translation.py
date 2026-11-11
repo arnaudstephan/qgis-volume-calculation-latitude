@@ -61,7 +61,7 @@ class FrenchInterfaceTest(unittest.TestCase):
     def test_texts_of_the_engine(self):
         self.assertEqual(BaseLevelOptions.MANUAL_BASE_LEVEL.short_label, "Altitude imposée")
         self.assertEqual(BaseLevelOptions.APPROXIMATE_VIA_MIN.short_label, "Contour – point le plus bas")
-        self.assertEqual(str(CountOptions.COUNT_ONLY_ABOVE), "Au-dessus de la base uniquement (stock)")
+        self.assertEqual(str(CountOptions.COUNT_ONLY_ABOVE), "Au-dessus de la base (stock)")
         self.assertIn("anneau", BaseLevelOptions.SPLINE_RING.explanation)
 
     def test_dialog_in_french(self):
@@ -70,10 +70,11 @@ class FrenchInterfaceTest(unittest.TestCase):
         try:
             self.assertEqual(dlg.windowTitle(), "Calcul de volumes")
             self.assertEqual(dlg.pushButtonReloadPolygons.text(), "Recharger")
-            self.assertEqual(dlg.tablePolygons.horizontalHeaderItem(0).text(), "Calculer")
-            self.assertIn("Calculer les volumes", dlg.pushButtonStartCalculation.text())
+            self.assertEqual(dlg.tablePolygons.horizontalHeaderItem(3).text(), "Méthode de base")
+            self.assertEqual(dlg.groupBoxPolygons.title(), "Volumes par polygone")
+            self.assertIn("Calculer", dlg.pushButtonStartCalculation.text())
             counting = [dlg.mFieldComboCountingMethod.itemText(i) for i in range(dlg.mFieldComboCountingMethod.count())]
-            self.assertIn("Déblai et remblai (au-dessus et au-dessous de la base)", counting)
+            self.assertIn("Déblai et remblai", counting)
         finally:
             dlg.close()
             dlg.deleteLater()

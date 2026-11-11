@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1240</width>
-    <height>860</height>
+    <width>1120</width>
+    <height>780</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,43 +17,63 @@
    <iconset>
     <normaloff>icon.svg</normaloff>icon.svg</iconset>
   </property>
-  <layout class="QHBoxLayout" name="mainLayout" stretch="5,2">
+  <layout class="QHBoxLayout" name="mainLayout" stretch="3,1">
+   <property name="spacing">
+    <number>14</number>
+   </property>
+   <property name="leftMargin">
+    <number>14</number>
+   </property>
+   <property name="topMargin">
+    <number>8</number>
+   </property>
+   <property name="rightMargin">
+    <number>14</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
    <item>
     <layout class="QVBoxLayout" name="leftLayout">
+     <property name="spacing">
+      <number>10</number>
+     </property>
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>Input layers</string>
+        <string>Layers</string>
        </property>
-       <layout class="QGridLayout" name="gridInput" columnstretch="1,0">
-        <item row="0" column="0" colspan="2">
+       <layout class="QGridLayout" name="gridInput" columnstretch="0,1,0">
+        <property name="horizontalSpacing">
+         <number>10</number>
+        </property>
+        <item row="0" column="0">
          <widget class="QLabel" name="label_4">
+          <property name="toolTip">
+           <string>Polygon layer: one polygon per stockpile or pit</string>
+          </property>
           <property name="text">
-           <string>Areas (polygon layer)</string>
+           <string>Polygons</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" colspan="2">
+        <item row="0" column="1" colspan="2">
          <widget class="QgsMapLayerComboBox" name="mFieldComboPolygon"/>
         </item>
-        <item row="2" column="0">
+        <item row="1" column="0">
          <widget class="QLabel" name="label_3">
+          <property name="toolTip">
+           <string>Heights: DEM raster, or LAS/LAZ point cloud of the ground</string>
+          </property>
           <property name="text">
-           <string>Height layer (DEM raster or LAS/LAZ ground point cloud)</string>
+           <string>DEM / point cloud</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Band:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
+        <item row="1" column="1">
          <widget class="QgsMapLayerComboBox" name="mFieldComboHeightLayer"/>
         </item>
-        <item row="3" column="1">
+        <item row="1" column="2">
          <widget class="QgsRasterBandComboBox" name="mFieldComboBand">
           <property name="minimumSize">
            <size>
@@ -61,21 +81,36 @@
             <height>0</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Band</string>
+          </property>
          </widget>
         </item>
-        <item row="4" column="0" colspan="2">
+        <item row="2" column="0" colspan="3">
          <widget class="QWidget" name="widgetPointCloud">
-          <layout class="QGridLayout" name="gridPointCloud">
+          <layout class="QGridLayout" name="gridPointCloud" columnstretch="0,0,1">
            <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
             <number>0</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
            </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <property name="horizontalSpacing">
+            <number>10</number>
+           </property>
            <item row="0" column="0">
             <widget class="QLabel" name="labelCloudResolution">
+             <property name="toolTip">
+              <string>Cell size of the DEM interpolated (TIN) from the points. About the mean point spacing is a good value.</string>
+             </property>
              <property name="text">
-              <string>DEM resolution from the point cloud (triangulation)</string>
+              <string>TIN resolution</string>
              </property>
             </widget>
            </item>
@@ -86,23 +121,23 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="2">
+           <item row="0" column="2">
             <widget class="QCheckBox" name="checkBoxGroundOnly">
              <property name="toolTip">
               <string>Keep only the points classified as ground (Classification = 2). Leave unchecked if the file already contains only ground points that are not classified.</string>
              </property>
              <property name="text">
-              <string>Use only the points classified as ground (class 2)</string>
+              <string>Ground class only</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="0" colspan="2">
+           <item row="1" column="0" colspan="3">
             <widget class="QCheckBox" name="checkBoxLoadCloudDem">
              <property name="toolTip">
               <string>Interpolates the WHOLE point cloud (not only the polygons area), saves the DEM next to the LAS file (name_DEM_TIN_resolution.tif) and adds it to the project as a hillshade, ready for print layouts. The file is reused by the next calculations as long as the LAS file and the settings do not change, and the layer already in the project is left untouched.</string>
              </property>
              <property name="text">
-              <string>Keep the DEM of the whole point cloud (saved next to the LAS, hillshade in the project)</string>
+              <string>Keep the DEM of the whole cloud</string>
              </property>
             </widget>
            </item>
@@ -115,79 +150,56 @@
      <item>
       <widget class="QGroupBox" name="groupBoxPolygons">
        <property name="title">
-        <string>Polygons to compute</string>
+        <string>Volumes by polygon</string>
        </property>
        <layout class="QVBoxLayout" name="polygonsLayout">
-        <item>
-         <widget class="QLabel" name="labelPolygonsHint">
-          <property name="text">
-           <string>The calculation uses the base method of each row. To change several rows: select them and change one, right-click, or use &quot;Set base method&quot;.</string>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTableWidget" name="tablePolygons">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>170</height>
-           </size>
-          </property>
-          <property name="alternatingRowColors">
-           <bool>true</bool>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="labelMethodInfo">
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-          <property name="textFormat">
-           <enum>Qt::RichText</enum>
-          </property>
-         </widget>
-        </item>
+        <property name="spacing">
+         <number>6</number>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="polygonButtonsLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
           <item>
-           <widget class="QPushButton" name="pushButtonIncludeAll">
+           <widget class="QToolButton" name="pushButtonIncludeAll">
             <property name="toolTip">
-             <string>Check every row: all polygons are computed</string>
-            </property>
-            <property name="text">
              <string>Check all</string>
             </property>
+            <property name="autoRaise">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonUncheckAll">
+           <widget class="QToolButton" name="pushButtonUncheckAll">
             <property name="toolTip">
-             <string>Uncheck every row</string>
-            </property>
-            <property name="text">
              <string>Uncheck all</string>
             </property>
+            <property name="autoRaise">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonUseMapSelection">
+           <widget class="QToolButton" name="pushButtonUseMapSelection">
             <property name="toolTip">
-             <string>Check only the polygons currently selected on the map</string>
+             <string>Check only the polygons selected on the map</string>
             </property>
-            <property name="text">
-             <string>Check map selection only</string>
+            <property name="autoRaise">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="labelCheckedCount"/>
+           <widget class="QLabel" name="labelCheckedCount">
+            <property name="toolTip">
+             <string>Checked rows</string>
+            </property>
+            <property name="indent">
+             <number>6</number>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="polygonButtonsSpacer">
@@ -203,12 +215,15 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonPreview3D">
+           <widget class="QToolButton" name="pushButtonPreview3D">
             <property name="toolTip">
-             <string>Show the stock of the current row in 3D with the base surface of each method</string>
+             <string>3D view of the base of the current row</string>
             </property>
             <property name="text">
-             <string>3D view of the base…</string>
+             <string>3D view</string>
+            </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
@@ -218,27 +233,72 @@
              <string>Give one base method to the selected, checked or all rows</string>
             </property>
             <property name="text">
-             <string>Set base method</string>
+             <string>Method</string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
             </property>
             <property name="toolButtonStyle">
-             <enum>Qt::ToolButtonTextOnly</enum>
+             <enum>Qt::ToolButtonTextBesideIcon</enum>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonReloadPolygons">
+           <widget class="QToolButton" name="pushButtonReloadPolygons">
             <property name="toolTip">
-             <string>Re-read the features of the polygon layer (keeps the choices already made)</string>
+             <string>Reload the polygons of the layer (keeps the choices made)</string>
             </property>
             <property name="text">
              <string>Reload</string>
             </property>
+            <property name="autoRaise">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tablePolygons">
+          <property name="toolTip">
+           <string>Select several rows to change their method together; right-click for more</string>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>170</height>
+           </size>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="showGrid">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelMethodInfo">
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelTotal">
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignVCenter</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -246,27 +306,23 @@
      <item>
       <widget class="QGroupBox" name="groupBoxMethodSettings">
        <property name="title">
-        <string>Settings of the base methods</string>
+        <string>Base DEM</string>
        </property>
-       <layout class="QGridLayout" name="gridBase" columnstretch="1,0">
+       <layout class="QGridLayout" name="gridBase" columnstretch="1,0,0">
+        <property name="horizontalSpacing">
+         <number>10</number>
+        </property>
+        <item row="0" column="2">
+         <widget class="QLabel" name="label_11"/>
+        </item>
         <item row="0" column="0">
-         <widget class="QLabel" name="label_11">
-          <property name="text">
-           <string>Base DEM layer</string>
+         <widget class="QgsMapLayerComboBox" name="mFieldComboHeightLayerBase">
+          <property name="toolTip">
+           <string>Surface compared with the DEM by the method 'Base DEM (surface to surface)'</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLabel" name="label_12">
-          <property name="text">
-           <string>Band:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QgsMapLayerComboBox" name="mFieldComboHeightLayerBase"/>
-        </item>
-        <item row="1" column="1">
          <widget class="QgsRasterBandComboBox" name="mFieldComboBandBase">
           <property name="minimumSize">
            <size>
@@ -274,12 +330,15 @@
             <height>0</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Band</string>
+          </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="2">
+        <item row="1" column="0" colspan="3">
          <widget class="QLabel" name="labelBaseDemRequired">
           <property name="text">
-           <string>Required: select the base DEM layer.</string>
+           <string>Select the base DEM layer.</string>
           </property>
           <property name="textFormat">
            <enum>Qt::RichText</enum>
@@ -290,84 +349,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_5">
-       <property name="title">
-        <string>Volume computation</string>
-       </property>
-       <layout class="QGridLayout" name="gridCalc" columnstretch="0,1,0,1">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Count:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" colspan="3">
-         <widget class="QComboBox" name="mFieldComboCountingMethod"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>Sampling step X:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <layout class="QHBoxLayout" name="stepXLayout">
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBoxSampleStepX">
-            <property name="toolTip">
-             <string>Distance between two sampled heights. Default = DEM pixel size (exact pixel values, no resampling).</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="toolButtonLinkSteps">
-            <property name="toolTip">
-             <string>Same step in X and Y</string>
-            </property>
-            <property name="text">
-             <string>X = Y</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>Y:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QDoubleSpinBox" name="doubleSpinBoxSampleStepY">
-          <property name="toolTip">
-           <string>Distance between two sampled heights. Default = DEM pixel size (exact pixel values, no resampling).</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="runLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
        <item>
         <widget class="QPushButton" name="pushButtonStartCalculation">
          <property name="minimumSize">
           <size>
-           <width>220</width>
+           <width>200</width>
            <height>0</height>
           </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">font-weight: bold;</string>
          </property>
          <property name="text">
           <string>Compute volumes</string>
@@ -394,93 +386,102 @@
    </item>
    <item>
     <layout class="QVBoxLayout" name="rightLayout">
+     <property name="spacing">
+      <number>10</number>
+     </property>
      <item>
-      <widget class="QGroupBox" name="groupBox_4">
+      <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
-        <string>Output options</string>
+        <string>Settings</string>
        </property>
-       <layout class="QGridLayout" name="gridOutput" columnstretch="0,1">
+       <layout class="QGridLayout" name="gridCalc" columnstretch="0,1,0,1">
+        <property name="horizontalSpacing">
+         <number>8</number>
+        </property>
         <item row="0" column="0">
-         <widget class="QLabel" name="label_unit">
+         <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Volume unit:</string>
+           <string>Count</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboOutputUnit"/>
+        <item row="0" column="1" colspan="3">
+         <widget class="QComboBox" name="mFieldComboCountingMethod">
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
+          </property>
+          <property name="minimumContentsLength">
+           <number>14</number>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_7">
+         <widget class="QLabel" name="label_6">
+          <property name="toolTip">
+           <string>Sampling step X / Y. Default = DEM pixel size (exact pixel values, no resampling).</string>
+          </property>
           <property name="text">
-           <string>Decimal places:</string>
+           <string>Step</string>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QSpinBox" name="outputAccuracy"/>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QCheckBox" name="checkBox_add_field">
-          <property name="text">
-           <string>Add/update volume as field</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_16">
-          <property name="text">
-           <string>Above field name:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="fieldName"/>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_17">
-          <property name="text">
-           <string>Below field name:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="fieldName_2"/>
-        </item>
-        <item row="5" column="0" colspan="2">
-         <widget class="QCheckBox" name="checkBox_labels">
+         <widget class="QDoubleSpinBox" name="doubleSpinBoxSampleStepX">
           <property name="toolTip">
-           <string>Replaces the labeling of the polygon layer by the calculated volumes</string>
-          </property>
-          <property name="text">
-           <string>Label polygons with the volumes</string>
+           <string>Sampling step X. Default = DEM pixel size (exact pixel values, no resampling).</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="labelLabelNameField">
+        <item row="1" column="2">
+         <widget class="QToolButton" name="toolButtonLinkSteps">
           <property name="toolTip">
-           <string>Optional: field shown above the volume in the labels (e.g. the material)</string>
+           <string>Same step in X and Y</string>
           </property>
           <property name="text">
-           <string>Label name field:</string>
+           <string notr="true">=</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoRaise">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
-         <widget class="QgsFieldComboBox" name="fieldComboLabelName">
+        <item row="1" column="3">
+         <widget class="QDoubleSpinBox" name="doubleSpinBoxSampleStepY">
           <property name="toolTip">
-           <string>Optional: field shown above the volume in the labels (e.g. the material)</string>
+           <string>Sampling step Y. Default = DEM pixel size (exact pixel values, no resampling).</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0" colspan="2">
-         <widget class="QCheckBox" name="checkBox_create_ndom">
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_unit">
+          <property name="text">
+           <string>Unit</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="comboOutputUnit"/>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="label_7">
           <property name="toolTip">
-           <string>Raster of the height above the base (normalised DSM) over the computed polygons, saved next to the height layer (file name ending with _nDOM.tif)</string>
+           <string>Decimal places</string>
           </property>
           <property name="text">
-           <string>Create height-above-base raster (nDSM)</string>
+           <string>Dec.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QSpinBox" name="outputAccuracy">
+          <property name="toolTip">
+           <string>Decimal places</string>
           </property>
          </widget>
         </item>
@@ -488,17 +489,106 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>Log</string>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>Output</string>
        </property>
+       <layout class="QGridLayout" name="gridOutput" columnstretch="0,1,1">
+        <property name="horizontalSpacing">
+         <number>8</number>
+        </property>
+        <item row="0" column="0" colspan="3">
+         <widget class="QCheckBox" name="checkBox_add_field">
+          <property name="toolTip">
+           <string>Add or update the volume fields of the polygon layer (and the base method of each polygon)</string>
+          </property>
+          <property name="text">
+           <string>Write the volumes to the layer</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_16">
+          <property name="toolTip">
+           <string>Names of the fields: above / below the base</string>
+          </property>
+          <property name="text">
+           <string>Fields</string>
+          </property>
+          <property name="indent">
+           <number>22</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="fieldName">
+          <property name="toolTip">
+           <string>Field of the volume above the base</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="fieldName_2">
+          <property name="toolTip">
+           <string>Field of the volume below the base</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QCheckBox" name="checkBox_labels">
+          <property name="toolTip">
+           <string>Replaces the labeling of the polygon layer by the calculated volumes</string>
+          </property>
+          <property name="text">
+           <string>Label the polygons</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="labelLabelNameField">
+          <property name="toolTip">
+           <string>Optional: field shown above the volume in the labels (e.g. the material)</string>
+          </property>
+          <property name="text">
+           <string>Name</string>
+          </property>
+          <property name="indent">
+           <number>22</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" colspan="2">
+         <widget class="QgsFieldComboBox" name="fieldComboLabelName">
+          <property name="toolTip">
+           <string>Optional: field shown above the volume in the labels (e.g. the material)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" colspan="3">
+         <widget class="QCheckBox" name="checkBox_create_ndom">
+          <property name="toolTip">
+           <string>Raster of the height above the base (normalised DSM) over the computed polygons, saved next to the height layer (file name ending with _nDOM.tif)</string>
+          </property>
+          <property name="text">
+           <string>Create the nDSM</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="QTextEdit" name="logOutput"/>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="logButtonsLayout">
+      <layout class="QHBoxLayout" name="logHeaderLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Log</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <spacer name="logSpacer">
          <property name="orientation">
@@ -513,23 +603,55 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="saveLog">
-         <property name="text">
+        <widget class="QToolButton" name="saveLog">
+         <property name="toolTip">
           <string>Save log</string>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="clearLog">
-         <property name="text">
+        <widget class="QToolButton" name="clearLog">
+         <property name="toolTip">
           <string>Clear log</string>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
       </layout>
      </item>
      <item>
+      <widget class="QTextEdit" name="logOutput"/>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="bottomButtonsLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QToolButton" name="pushButtonHelp">
+         <property name="toolTip">
+          <string>Help</string>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="pushButtonAbout">
+         <property name="toolTip">
+          <string>About</string>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item>
         <spacer name="bottomSpacer">
          <property name="orientation">
@@ -542,20 +664,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButtonHelp">
-         <property name="text">
-          <string>Help</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButtonAbout">
-         <property name="text">
-          <string>About</string>
-         </property>
-        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButtonExit">
