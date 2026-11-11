@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+dist/
+_retires_du_plugin/
+volume_calculation_tool_ORIGINAL_v0.5/

@@ -1,0 +1,48 @@
+[general]
+name=Volume Calculation Tool - Latitude Drone
+qgisMinimumVersion=3.22
+qgisMaximumVersion=4.99
+supportsQt6=True
+description=Stockpile volumes in polygons from a DEM or a ground point cloud, with a 3D view of the base surface of each stock
+about=Calculates the volume above and below a base surface inside each polygon of a layer, from a DEM raster or a LAS/LAZ ground point cloud. The base surface is chosen per polygon: lowest or average height of the outline, best-fit plane, triangulated outline (TIN on the clicked vertices), thin-plate spline fitted on a ground ring around the polygon, manual level or a second DEM. A 3D view shows the stock and its base surface with cross-sections, so the method, level and spline settings of each stock can be judged and adopted directly. Results are stored in the layer, labelled with the material name and volume, and can be exported as an nDSM. English and French. The 3D view needs the Python library matplotlib (shipped with QGIS on Windows and macOS). Based on the Volume Calculation Tool by REDcatch GmbH.
+version=0.8
+author=Latitude Drone (based on the Volume Calculation Tool by REDcatch GmbH)
+email=contact@latitude-drone.com
+
+tracker=https://github.com/arnaudstephan/qgis-volume-calculation-latitude/issues
+repository=https://github.com/arnaudstephan/qgis-volume-calculation-latitude
+homepage=https://github.com/arnaudstephan/qgis-volume-calculation-latitude
+
+hasProcessingProvider=no
+changelog=0.8
+    - 3D view of each stock and its base surface (lit, with perspective) and cross-sections at the same
+      vertical exaggeration; method, manual level and spline settings are chosen there and saved at once;
+      arrows to go from one stock to the next
+    - Triangulated outline: Delaunay TIN on the polygon vertices only (as Pix4D)
+    - Spline ring width and stiffness set per polygon (Base_ring / Base_stiff fields), with sliders
+    - Labels with the material name before the volume
+    - French translation (follows the QGIS language)
+    - Web tile layers (XYZ, WMS) refused as base DEM with a clear message; new icon
+    0.7
+    - Base method of each polygon chosen only in the table; several rows at once from a menu
+    - Manual level asked when the method is chosen; a missing level is refused by the calculation
+    - Volumes and errors shown per polygon in the table; double-click a row to zoom on it
+    - Sampling step: X = Y link; a step equal to the rounded DEM pixel size keeps the exact DEM grid
+    0.6
+    - LAS/LAZ ground point cloud as height source, triangulated into a DEM (QGIS >= 3.32)
+    - Base level method chosen per polygon, stored in the Base_meth / Base_z fields
+    - New base methods: best-fit plane, triangulated outline and thin-plate spline on a ground ring
+    - Fast block-wise raster reading, exact pixel sampling, nodata cells reported
+    - Polygons and base DEM in another CRS reprojected on the fly
+    - Volumes in m3 (default), yd3 or ft3; polygons labelled with the volumes; nDSM output
+    0.5
+    - Compatible with QGIS 3 and 4, local units (m, ft), nDSM heights output, bugfixes
+
+# comma separated, spaces allowed
+tags=volume, stockpile, dem, dsm, drone, survey, earthwork, raster, point cloud, 3d
+
+category=Raster
+icon=icon.png
+experimental=False
+deprecated=False
+server=False
